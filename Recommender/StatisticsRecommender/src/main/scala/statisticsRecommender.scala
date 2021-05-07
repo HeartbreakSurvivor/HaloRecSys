@@ -90,6 +90,7 @@ object statisticsRecommender {
 
 		// 1、 历史热门推荐， 历史评分数据最多
 		val rateMostMoviesDF = spark.sql("select mid, count(mid) as count from ratings group by mid")
+		// 这里可以排个序
 		//存入Mongo中
 		storeDFtoMongoDB(rateMostMoviesDF, RATE_MOST_MOVIES)
 

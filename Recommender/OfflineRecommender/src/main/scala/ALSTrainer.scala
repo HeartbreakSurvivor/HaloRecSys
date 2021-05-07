@@ -11,9 +11,9 @@ object ALSTrainer {
 
 	//LFM模型输出结果写入MongoDB
 	// 每个用户的评分输出表
-	val USER_RECS = "LFM_USER_RECS"
+	val LFM_USER_RECS = "LFM_USER_RECS"
 	// 每部电影的相似度矩阵表
-	val MOVIE_RECS = "LFM_MOVIE_RECS"
+	val LFM_MOVIE_RECS = "LFM_MOVIE_RECS"
 
 	val SIM_THRESHOLD = 0.6 //定义电影相似度阈值
 	val USER_MAX_RECOMMENDATION = 10 //给每个用户推荐的电影的个数

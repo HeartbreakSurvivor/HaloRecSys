@@ -16,6 +16,9 @@
         <module>Recommender/StatisticsRecommender</module>
         <module>Recommender/OfflineRecommender</module>
         <module>Recommender/ContentRecommender</module>
+        <module>Recommender/StreamingRecommender</module>
+        <module>Recommender/KafkaStream</module>
+        <module>BusinessServer</module>
     </modules>
 
     <properties>
@@ -35,6 +38,10 @@
         <elasticsearch.version>5.6.2</elasticsearch.version>
         <!-- java里面的线性代数库 -->
         <jblas.version>1.2.1</jblas.version>
+
+        <!-- 定义HttpClient版本 -->
+        <httpclient.version>4.5.8</httpclient.version>
+        <httpasyncclient.version>4.1.4</httpasyncclient.version>
     </properties>
 
     <!-- 引入依赖，对所有子项目都适用 -->

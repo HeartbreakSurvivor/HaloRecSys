@@ -35,11 +35,11 @@ object LFMRecommender {
 
 	//LFM模型输出结果写入MongoDB
 	// 每个用户的评分输出表
-	val USER_RECS = "LFM_USER_RECS"
+	val LFM_USER_RECS = "LFM_USER_RECS"
 	// 每部电影的相似度矩阵表
-	val MOVIE_RECS = "LFM_MOVIE_RECS"
+	val LFM_MOVIE_RECS = "LFM_MOVIE_RECS"
 	// 每个用户的相似度推荐
-	val USER_SIM_RECS = "LFM_USER_SIM_RECS"
+	val LFM_USER_SIM_RECS = "LFM_USER_SIM_RECS"
 
 	val USER_SIM_THRESHOLD = 0.6 //定义用户相似度阈值
 	val MOVIE_SIM_THRESHOLD = 0.6 //定义电影相似度阈值
@@ -102,7 +102,7 @@ object LFMRecommender {
 		// 写入对应的表中
 		userRecs.write
 			.option("uri", mongoConfig.uri)
-			.option("collection", USER_RECS)
+			.option("collection", LFM_USER_RECS)
 			.mode("overwrite")
 			.format("com.mongodb.spark.sql")
 			.save()
@@ -131,7 +131,7 @@ object LFMRecommender {
 		//将用户相似列表写入MongDB中
 		userSim.write
 		  .option("uri", mongoConfig.uri)
-		  .option("collection", USER_SIM_RECS)
+		  .option("collection", LFM_USER_SIM_RECS)
 		  .mode("overwrite")
 		  .format("com.mongodb.spark.sql")
 		  .save()
@@ -160,7 +160,7 @@ object LFMRecommender {
 		//将电影相似度矩阵写入MongDB中
 		movieRecs.write
 		  .option("uri", mongoConfig.uri)
-		  .option("collection", MOVIE_RECS)
+		  .option("collection", LFM_MOVIE_RECS)
 		  .mode("overwrite")
 		  .format("com.mongodb.spark.sql")
 		  .save()

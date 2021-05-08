@@ -10,7 +10,6 @@ import java.net.InetSocketAddress;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 
 /**
@@ -45,11 +44,11 @@ public class RecServer {
         URI webRootUri = URI.create(webRootLocation.toURI().toASCIIString().replaceFirst("/index.html$","/"));
         System.out.printf("Web Root URI: %s%n", webRootUri.getPath());
 
-        DataLoader.getInstance().LoadMovieData(Config.MONGODB_RECOMMENDATION_DB, Config.MONGODB_MOVIE_COLLECTION,
+        DataLoader.getInstance().LoadMovieData(Config.DATABASE_NAME, Config.MONGODB_MOVIE_COLLECTION,
                 Config.MONGODB_RATING_COLLECTION, Config.MONGODB_LINK_COLLECTION);
-        DataLoader.getInstance().LoadStatisticsRecsData(Config.MONGODB_RECOMMENDATION_DB, Config.RATE_MOST_MOVIES,
+        DataLoader.getInstance().LoadStatisticsRecsData(Config.DATABASE_NAME, Config.RATE_MOST_MOVIES,
                 Config.RATE_MOST_RECENTLY_MOVIES, Config.AVERAGE_RATINGS_MOVIES, Config.GENRES_TOP_N_MOVIES);
-        DataLoader.getInstance().LoadLFMRecsData(Config.LFM_MOVIE_RECS, Config.LFM_USER_RECS, Config.LFM_USER_SIM_RECS);
+        // DataLoader.getInstance().LoadLFMRecsData(Config.LFM_MOVIE_RECS, Config.LFM_USER_RECS, Config.LFM_USER_SIM_RECS);
 
         // create server context
         ServletContextHandler context = new ServletContextHandler();

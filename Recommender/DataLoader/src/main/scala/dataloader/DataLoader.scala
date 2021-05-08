@@ -13,6 +13,7 @@ import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.common.transport.InetSocketTransportAddress
 import org.elasticsearch.transport.client.PreBuiltTransportClient
 
+
 //定义原始数据的样例类
 /*
 * 电影数据样例类
@@ -25,6 +26,12 @@ case class Movie(mid:Int, name:String, genres:String)
 * 	userId,movieId,rating,timestamp
 * */
 case class Rating(uid:Int, mid:Int, score:Double, timestamp:Int)
+
+/*
+*  影片链接数据样例类
+* 	movieId,imdbId,tmdbId
+* */
+case class Link(mid:Int, imdbId:String, tmdbId:String)
 
 /*
 * 标签数据样例类
@@ -51,26 +58,32 @@ object DataLoader {
 	val MOVIE_DATA_PATH = "/Volumes/Study/RS/Projects/HaloRecSys/Recommender/DataLoader/src/main/resources/MovieLens/movies.csv"
 	val RATING_DATA_PATH = "/Volumes/Study/RS/Projects/HaloRecSys/Recommender/DataLoader/src/main/resources/MovieLens/ratings.csv"
 	val TAG_DATA_PATH = "/Volumes/Study/RS/Projects/HaloRecSys/Recommender/DataLoader/src/main/resources/MovieLens/tags.csv"
+	val LINK_DATA_PATH = "/Volumes/Study/RS/Projects/HaloRecSys/Recommender/DataLoader/src/main/resources/MovieLens/links.csv"
 
-	//定义MongoDB表名称
-	val MONGODB_MOVIE_COLLECTION = "Movie"
-	val MONGODB_RATING_COLLECTION = "Rating"
-	val MONGODB_TAG_COLLECTION = "Tag"
+	val RECOMMENDATION_DB_NAME = "recommender"
+	val MONGODB_MOVIE_COLLECTION = "Movies"
+	val MONGODB_RATING_COLLECTION = "Ratings"
+	val MONGODB_LINK_COLLECTION = "Links"
+	val MONGODB_TAG_COLLECTION = "Tags"
 
-	val ES_MOVIE_INDEX = "Movie"
+	val ES_MOVIE_INDEX = "ES_Movie"
 
 	def main(args: Array[String]): Unit = {
 		val config = Map(
 			"spark.cores" -> "local[*]",
 			//数据库url
-			"mongo.uri" -> "mongodb://localhost:27017/recommender",
+			"mongo.uri" -> "mongodb://localhost:27017/".concat(RECOMMENDATION_DB_NAME),
 			//数据库名称
 			"mongo.db" -> "recommender",
 			"es.httpHosts" -> "localhost:9200",
 			"es.transportHosts" -> "localhost:9300",
-			"es.index" -> "recommender",
-			"es.cluster.name" -> "elasticsearch"
+			"es.index" -> RECOMMENDATION_DB_NAME,
+			"es.cluster.name" -> "es-cluster"
 		)
+
+		// 解决运行错误"availableProcessors is already set to [8], rejecting [8]"问题，
+		// https://www.cnblogs.com/sxdcgaq8080/p/10214919.html
+		System.setProperty("es.set.netty.runtime.available.processors", "false")
 
 		val sparkConf = new SparkConf().setMaster(config("spark.cores")).setAppName("DataLoader")
 
@@ -86,18 +99,38 @@ object DataLoader {
 		val movieRDD = movieRDDwithHead.filter(_ != movieHead) //使用filter算子过滤
 		val movieDF = movieRDD.map(
 			item => {
-				val attr = item.split(",")
-				Movie(attr(0).toInt, attr(1).trim, attr(2).trim)
+				// can't handle some exception
+				//val attr = item.split(",")
+				//Movie(attr(0).toInt, attr(1).trim, attr(2).trim)
+				
+				val idx1 = item.indexOf(",")
+				val idx2 = item.lastIndexOf(",")
+
+				val mid = item.substring(0, idx1).toInt
+				val name = item.substring(idx1+1, idx2).trim
+				val genres = item.substring(idx2+1).trim
+				Movie(mid, name, genres)
 			}
 		).toDF()
 
 		val ratingRDDwithHead = spark.sparkContext.textFile(RATING_DATA_PATH)
 		val ratingHead = ratingRDDwithHead.first() //先读取表头
 		val ratingRDD = ratingRDDwithHead.filter(_ != ratingHead) //使用filter算子过滤
-		val ratingDF = ratingRDD.map(
+		val ratingDF = ratingRDD.filter(_.split(",").length == 4).map( // 筛选出不符合格式的数据
 			item => {
 				val attr = item.split(",")
 				Rating(attr(0).toInt, attr(1).toInt, attr(2).toDouble, attr(3).toInt)
+			}
+		).toDF()
+
+		val linkRDDwithHead = spark.sparkContext.textFile(LINK_DATA_PATH)
+		val linkHead = linkRDDwithHead.first()
+		val linkRDD = linkRDDwithHead.filter(_ != linkHead)
+		val linkDF = linkRDD.filter(_.split(",").length == 3)
+		  .map(
+			item => {
+				val attr = item.split(",")
+				Link(attr(0).toInt, attr(1).trim, attr(2).trim)
 			}
 		).toDF()
 
@@ -107,7 +140,6 @@ object DataLoader {
 		val tagRDD = tagRDDwithHead.mapPartitionsWithIndex( (idx, iter) => if (idx == 0) iter.drop(1) else iter)
 
 		// 这里会有问题，因为Tags数据集不是标准的，使用','分割的话，因为有些数据中tag一栏，也是使用','分割的，会导致这里出错，所以这里加一个容错措施
-		//TODO:
 		// 这里是先做了一个筛选，然后再做的map操作，有重复操作，可以优化，不过目前还没想到具体的方法
 		val tagDF = tagRDD.filter(_.split(",") == 4)
 		  .map(
@@ -121,7 +153,7 @@ object DataLoader {
 		implicit val mongoConfig = MongoConfig(config("mongo.uri"), config("mongo.db"))
 
 		// 保存到MongoDB中
-		storeDataToMongoDB(movieDF, ratingDF, tagDF)
+		storeDataToMongoDB(movieDF, ratingDF, linkDF, tagDF)
 
 		//数据预处理，把Movie对应的Tag信息加到Movie里面去，加一个新列，名为"tags",格式为 tag1|tag2|tag3|...
 		// 方便ElasticSearch
@@ -129,24 +161,25 @@ object DataLoader {
 		/*
 		* tags: tag1|tag2|tag3|...
 		* */
-		val newTag = tagDF.groupBy($"mid")
-			.agg( concat_ws("|", collect_set($"tag")).as("tags") ) //提取用户对电影打的标签
-			.select("mid", "tags") //只需要mid和tags这两列的数据
-
-		//让newTag和movie进行左外连接,因为movie中的某些movie就没有对应的tag，故要以movie中的mid作为基准来进行左外连接
-		val movieWithTagsDF = movieDF.join(newTag, Seq("mid"), "left")
-
-		//implicit val esConfig = ESConfig(config("es.httpHosts"), config("es.transportHosts"), config("es.index"), config("es.cluster.name"))
-		//storeDataToES(movieWithTagsDF)
+//		val newTag = tagDF.groupBy($"mid")
+//			.agg( concat_ws("|", collect_set($"tag")).as("tags") ) //提取用户对电影打的标签
+//			.select("mid", "tags") //只需要mid和tags这两列的数据
+//
+//		//让newTag和movie进行左外连接,因为movie中的某些movie就没有对应的tag，故要以movie中的mid作为基准来进行左外连接
+//		val movieWithTagsDF = movieDF.join(newTag, Seq("mid"), "left")
+//
+//		implicit val esConfig = ESConfig(config("es.httpHosts"), config("es.transportHosts"), config("es.index"), config("es.cluster.name"))
+//		storeDataToES(movieWithTagsDF)
 	}
 
-	def storeDataToMongoDB(movieDF:DataFrame, ratingDF:DataFrame, tagDF:DataFrame)(implicit mongoConfig: MongoConfig): Unit = {
+	def storeDataToMongoDB(movieDF:DataFrame, ratingDF:DataFrame, linkDF:DataFrame, tagDF:DataFrame)(implicit mongoConfig: MongoConfig): Unit = {
 		//新建到MomgoDB的连接
 		val mongoClient = MongoClient(MongoClientURI(mongoConfig.uri))
 
 		//先删除MongoDB中对应的数据库
 		mongoClient(mongoConfig.db)(MONGODB_MOVIE_COLLECTION).drop()
 		mongoClient(mongoConfig.db)(MONGODB_RATING_COLLECTION).drop()
+		mongoClient(mongoConfig.db)(MONGODB_LINK_COLLECTION).drop()
 		mongoClient(mongoConfig.db)(MONGODB_TAG_COLLECTION).drop()
 
 		movieDF.write
@@ -163,6 +196,13 @@ object DataLoader {
 		  .format("com.mongodb.spark.sql")
 		  .save()
 
+		linkDF.write
+		  .option("uri", mongoConfig.uri)
+		  .option("collection", MONGODB_LINK_COLLECTION)
+		  .mode("overwrite")
+		  .format("com.mongodb.spark.sql")
+		  .save()
+
 		tagDF.write
 		  .option("uri", mongoConfig.uri)
 		  .option("collection", MONGODB_TAG_COLLECTION)
@@ -174,6 +214,7 @@ object DataLoader {
 		mongoClient(mongoConfig.db)(MONGODB_MOVIE_COLLECTION).createIndex(MongoDBObject("mid" -> 1))
 		mongoClient(mongoConfig.db)(MONGODB_RATING_COLLECTION).createIndex(MongoDBObject("uid" -> 1))
 		mongoClient(mongoConfig.db)(MONGODB_RATING_COLLECTION).createIndex(MongoDBObject("mid" -> 1))
+		mongoClient(mongoConfig.db)(MONGODB_LINK_COLLECTION).createIndex(MongoDBObject("mid" -> 1))
 		mongoClient(mongoConfig.db)(MONGODB_TAG_COLLECTION).createIndex(MongoDBObject("uid" -> 1))
 		mongoClient(mongoConfig.db)(MONGODB_TAG_COLLECTION).createIndex(MongoDBObject("mid" -> 1))
 
@@ -189,7 +230,7 @@ object DataLoader {
 
 		//利用正则表达式来筛选主机名，ip:端口
 		val REGEX_HOST_PORT = "(.+):(\\d+)".r
-		esConfig.transportHosts.split(",").foreach{
+		esConfig.transportHosts.split(",").foreach {
 			// 进行模式匹配，拿到对应的IP和端口
 			case REGEX_HOST_PORT(host: String, port: String) => {
 				esClient.addTransportAddress(new InetSocketTransportAddress( InetAddress.getByName(host), port.toInt ))
@@ -200,7 +241,7 @@ object DataLoader {
 		if( esClient.admin().indices().exists( new IndicesExistsRequest(esConfig.index) )
 		  .actionGet()
 		  .isExists
-		){
+		) {
 			esClient.admin().indices().delete( new DeleteIndexRequest(esConfig.index) )
 		}
 

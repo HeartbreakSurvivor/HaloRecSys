@@ -2,13 +2,16 @@ package com.halorecsys.dataloader;
 
 import com.halorecsys.utils.Config;
 import com.halorecsys.utils.MongoDBClient;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
+import com.sun.tools.javac.util.Pair;
 import org.bson.Document;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @program: HaloRecSys
@@ -25,23 +28,25 @@ public class DataLoader {
     HashMap<Integer, User> userMap;
 
     // map movies to specific categories
-    HashMap<String, List<Movie>> genresMap;
+    HashMap<String, List<Integer>> genresMap;
 
     // statistic recommendation
+    // Number of movie recommendations
+    int topN = 10;
     // Rated most movies
-    List<Movie> rateMostMovies;
+    List<Integer> rateMostMovies;
     // highest average score movies
-    List<Movie> highScoreMovies;
+    List<Integer> highScoreMovies;
     // Rated most recently movies
-    List<Movie> rateRecentlyMovies;
+    List<Integer> rateRecentlyMovies;
     // top 20 high average score in categories
-    List<Movie> genresTopMovies;
+    List<Integer> genresTopMovies;
 
     // Collaborative Filter Recommendation
-    List<Movie> lfmRecMovies;
+    List<Integer> lfmRecMovies;
 
     // TF-IDF based Recommendation
-    List<Movie> TFIDFRecMovies;
+    List<Integer> TFIDFRecMovies;
 
     private DataLoader() {
         this.movieMap = new HashMap<>();
@@ -113,7 +118,7 @@ public class DataLoader {
                 for (String g : genreArray) {
                     m.addGenre(g);
                     if (this.genresMap.containsKey(g)) {
-                        genresMap.get(g).add(m);
+                        genresMap.get(g).add(mid);
                     } else {
                         genresMap.put(g, new ArrayList<>());
                     }
@@ -140,7 +145,7 @@ public class DataLoader {
             if (movie != null) {
                 movie.addRating(rating);
             }
-            if (this.userMap.containsKey(uid)) {
+            if (!this.userMap.containsKey(uid)) {
                 User user = new User();
                 user.setUserId(uid);
                 this.userMap.put(uid, user);
@@ -154,7 +159,7 @@ public class DataLoader {
         // load link data
         MongoCollection<Document> links = db.getCollection(linkTable);
         for (Document doc : links.find()) {
-            int mid = doc.getInteger("movieId");
+            int mid = doc.getInteger("mid");
             String imdbId = doc.getString("imdbId");
             String tmdbId = doc.getString("tmdbId");
 
@@ -169,9 +174,46 @@ public class DataLoader {
     }
 
     public void LoadStatisticsRecsData(String dbName, String rateMostMovies, String rateMostRecentlyMovies, String highScoreMovies, String genresTopMovies) {
-        MongoDatabase db = MongoDBClient.getInstance().getDatabase(dbName);
+        // get rate most movies
+        MongoCollection<Document> rateMoreMoviesCollection = MongoDBClient.getInstance().getDatabase(dbName).getCollection(rateMostMovies);
+        FindIterable<Document> rateMoreMovies = rateMoreMoviesCollection.find().sort(Sorts.descending("count")).limit(this.topN);
+        for (Document doc : rateMoreMovies) {
+            this.rateMostMovies.add(doc.getInteger("mid"));
+        }
 
+        // get rate most recently movies
+        FindIterable<Document> rateMoreRecentlyMovies = MongoDBClient.getInstance().getDatabase(dbName).getCollection(rateMostRecentlyMovies).find()
+                .sort(Sorts.descending("yearmonth")).limit(this.topN);
+        for (Document doc : rateMoreRecentlyMovies) {
+            this.rateRecentlyMovies.add(doc.getInteger("mid"));
+        }
 
+        // get top N high score movies
+        FindIterable<Document> averageMovies = MongoDBClient.getInstance().getDatabase(dbName).getCollection(highScoreMovies).find()
+                .sort(Sorts.descending("avg")).limit(this.topN);
+        for (Document doc : averageMovies) {
+            this.highScoreMovies.add(doc.getInteger("mid"));
+        }
+
+        // get top N score movies for each genre
+        FindIterable<Document> genresTopMovieList = MongoDBClient.getInstance().getDatabase(dbName).getCollection(genresTopMovies).find();
+        for (Document doc : genresTopMovieList) {
+            String genre = doc.getString("genres");
+            List<Pair<Integer,Double>> movielist = new ArrayList<>();
+            ArrayList<Document> recs = doc.get("recs", ArrayList.class);
+            for (Document recDoc : recs) {
+                movielist.add(new Pair<Integer,Double>(recDoc.getInteger("mid"), recDoc.getDouble("score")));
+            }
+            // 对每个分组列表进行排序
+            Collections.sort(movielist, new Comparator< Pair<Integer, Double> >() {
+                @Override
+                public int compare(final Pair<Integer, Double> o1, final Pair<Integer, Double> o2) {
+                    return o1.snd > o2.snd ? -1: 1;// 降序排列
+            }
+            });
+            List<Integer> temp = movielist.stream().map(p -> p.fst).collect(Collectors.toList());
+            this.genresMap.put(genre, temp);
+        }
     }
 
     public void LoadLFMRecsData(String lfmUserMovieRecs, String lfmRelatedMovies, String lfmSimUsers) {

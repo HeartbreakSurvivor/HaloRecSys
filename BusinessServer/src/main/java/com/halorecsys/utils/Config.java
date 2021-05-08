@@ -11,7 +11,7 @@ public class Config {
     public static final int DEFAULT_PORT = 3506;
 
     // MongoDB table name definition
-    public static final String MONGODB_RECOMMENDATION_DB = "recommender";
+    public static final String DATABASE_NAME = "recommender";
     public static final String MONGODB_MOVIE_COLLECTION = "Movies";
     public static final String MONGODB_RATING_COLLECTION = "Ratings";
     public static final String MONGODB_LINK_COLLECTION = "Links";
@@ -25,7 +25,7 @@ public class Config {
     //最近评分次数最多的电影
     public static final String RATE_MOST_RECENTLY_MOVIES = "RateMostRecentlyMovies";
     //每部电影的平均评分
-    public static final String AVERAGE_RATINGS_MOVIES = "AverageMovies";
+    public static final String AVERAGE_RATINGS_MOVIES = "AverageScoreMovies";
     //按类别划分评分最高的电影
     public static final String GENRES_TOP_N_MOVIES = "GenresTopMovies";
 

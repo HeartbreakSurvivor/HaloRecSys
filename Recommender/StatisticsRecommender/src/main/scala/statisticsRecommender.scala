@@ -38,13 +38,13 @@ case class GenresRecommendation(genres: String, recs: Seq[Recommendation])
 
 object statisticsRecommender {
 	//Mongo数据库中的保存Movie信息的表名称
-	val MONGODB_MOVIE_COLLECTION = "Movie"
-	val MONGODB_RATING_COLLECTION = "Rating"
+	val MONGODB_MOVIE_COLLECTION = "Movies"
+	val MONGODB_RATING_COLLECTION = "Ratings"
 
 	//离线统计推荐的结果保存的表名称
 	val RATE_MOST_MOVIES = "RateMostMovies" //总体评分次数最多的电影
 	val RATE_MOST_RECENTLY_MOVIES = "RateMostRecentlyMovies" //最近评分次数最多的电影
-	val AVERAGE_RATINGS_MOVIES = "AverageMovies" //每部电影的平均评分
+	val AVERAGE_RATINGS_MOVIES = "AverageScoreMovies" //每部电影的平均评分
 	val GENRES_TOP_N_MOVIES = "GenresTopMovies" //按类别划分评分最高的电影
 
 	val TOP_N = 10 //取前多少个
@@ -88,10 +88,9 @@ object statisticsRecommender {
 		ratingDF.createOrReplaceTempView("ratings")
 		// 一共要统计四种数据
 
-		// 1、 历史热门推荐， 历史评分数据最多
-		val rateMostMoviesDF = spark.sql("select mid, count(mid) as count from ratings group by mid")
-		// 这里可以排个序
-		//存入Mongo中
+		// 1、 历史热门推荐，按照电影的评价数目降序排列
+		val rateMostMoviesDF = spark.sql("select mid, count(mid) as count from ratings group by mid order by count desc")
+		rateMostMoviesDF.show(20, truncate = false)
 		storeDFtoMongoDB(rateMostMoviesDF, RATE_MOST_MOVIES)
 
 		// 2、近期热门统计，按照年月日选取最近的评分数据，统计评分个数
@@ -103,11 +102,13 @@ object statisticsRecommender {
 
 		//这句Sql语句的含义，先对ratingOfMonth按照年月聚合，接着再按照mid聚合，然后按照年月降序排列，即筛选的是最近一段时间的，同理，还要对count进行排序，即时间最近并且出现的次数最多的排的越靠前
 		val rateMostRecentlyMoviesDF = spark.sql("select mid, count(mid) as count, yearmonth from ratingOfMonth group by yearmonth, mid order by yearmonth desc, count desc")
+		rateMostRecentlyMoviesDF.show(20, truncate = false)
 		storeDFtoMongoDB(rateMostRecentlyMoviesDF, RATE_MOST_RECENTLY_MOVIES)
 
 		// 3、优质电影统计，统计每部电影的平均评分,并且根据降序排列
 		//val averageRatingsDF = spark.sql("select mid, avg(score) as avg from ratings group by mid")
-		val averageRatingsDF = spark.sql("select mid, avg(score) as avgg from ratings group by mid order by avgg desc")
+		val averageRatingsDF = spark.sql("select mid, avg(score) as avg from ratings group by mid order by avg desc")
+		averageRatingsDF.show(20, truncate = false)
 		storeDFtoMongoDB(averageRatingsDF, AVERAGE_RATINGS_MOVIES)
 
 		// 4、各类别Top20电影统计，根据评分高低排名
@@ -126,8 +127,8 @@ object statisticsRecommender {
 			  case (genre, row) => row.getAs[String]("genres").toLowerCase.contains( genre.toLowerCase)
 		  }
 		  .map{
-			  // 这一步将每行数据映射成指定的 "genre mid avgf" 形式，
-			  case (genre, movieRow) => (genre, (movieRow.getAs[Int]("mid"), movieRow.getAs[Double]("avgg")))
+			  // 这一步将每行数据映射成指定的 "genre mid avg" 形式，
+			  case (genre, movieRow) => (genre, (movieRow.getAs[Int]("mid"), movieRow.getAs[Double]("avg")))
 		  }
 		  .groupByKey() //根据类别进行聚合，即同一个类别的所有电影放到一起，GroupByKey的返回值是一个RDD
 		  .map{

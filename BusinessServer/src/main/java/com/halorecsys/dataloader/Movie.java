@@ -30,16 +30,16 @@ public class Movie {
     List<Movie> relatedMovies;
 
     //embedding of the movie
-    // @JsonIgnore
+    @JsonIgnore
     Embedding emb;
 
     //all rating scores list
-    // @JsonIgnore
+    @JsonIgnore
     List<Rating> ratings;
 
     final int TOP_RATING_SIZE = 10;
 
-    // @JsonSerialize(using = RatingListSerializer.class)
+    @JsonSerialize(using = RatingListSerializer.class)
     List<Rating> topRatings;
 
     public Movie() {

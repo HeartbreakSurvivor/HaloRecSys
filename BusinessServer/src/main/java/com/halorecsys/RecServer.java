@@ -1,5 +1,6 @@
 package com.halorecsys;
 
+import com.halorecsys.service.RecommendationService;
 import com.halorecsys.utils.Config;
 import com.halorecsys.dataloader.DataLoader;
 
@@ -10,6 +11,7 @@ import java.net.InetSocketAddress;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 
 /**
@@ -62,7 +64,7 @@ public class RecServer {
 //        context.addServlet(new ServletHolder(new MovieService()), "/getmovie");
 //        context.addServlet(new ServletHolder(new UserService()), "/getuser");
 //        context.addServlet(new ServletHolder(new SimilarMovieService()), "/getsimilarmovie");
-//        context.addServlet(new ServletHolder(new RecommendationService()), "/getrecommendation");
+        context.addServlet(new ServletHolder(new RecommendationService()), "/getrecommendation");
 //        context.addServlet(new ServletHolder(new RecForYouService()), "/getrecforyou");
 
         server.setHandler(context);

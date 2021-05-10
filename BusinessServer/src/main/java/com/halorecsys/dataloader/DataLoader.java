@@ -219,4 +219,80 @@ public class DataLoader {
     public void LoadLFMRecsData(String lfmUserMovieRecs, String lfmRelatedMovies, String lfmSimUsers) {
 
     }
+
+    public List<Movie> getMoviesByGenre(String genre, int size, String sortBy){
+        if (null != genre){
+            List<Movie> movies = new ArrayList<>();
+            for (int mid : this.genresMap.get(genre)) {
+                movies.add(this.movieMap.get(mid));
+            }
+            switch (sortBy){
+                case "rating":movies.sort((m1, m2) -> Double.compare(m2.getAverageRating(), m1.getAverageRating()));break;
+                case "releaseYear": movies.sort((m1, m2) -> Integer.compare(m2.getReleaseYear(), m1.getReleaseYear()));break;
+                default:
+            }
+
+            if (movies.size() > size){
+                return movies.subList(0, size);
+            }
+            return movies;
+        }
+        return null;
+    }
+
+    public List<Movie> getMoviesByType(int type, String genre, int size, String sortBy) {
+        List<Movie> movies = new ArrayList<>();
+        switch (type) {
+            case 0:
+                if (null != genre) {
+                    for (int mid : this.genresMap.get(type)) {
+                        movies.add(this.movieMap.get(mid));
+                    }
+                    switch (sortBy) {
+                        case "rating": movies.sort((m1, m2) -> Double.compare(m2.getAverageRating(), m1.getAverageRating()));break;
+                        case "releaseYear": movies.sort((m1, m2) -> Integer.compare(m2.getReleaseYear(), m1.getReleaseYear()));break;
+                        default: break;
+                    }
+                }
+                break;
+            case 1:
+                switch (genre) {
+                    case "Most comments": // 最多评分电影
+                        for (int mid : this.rateMostMovies)
+                            movies.add(this.movieMap.get(mid));
+                        break;
+                    case "Highest score": // 评分最高
+                        for (int mid : this.highScoreMovies)
+                            movies.add(this.movieMap.get(mid));
+                        break;
+                    case "Genres-TopN": // 每个类别评分最高
+                        for (int mid : this.genresTopMovies)
+                            movies.add(this.movieMap.get(mid));
+                        break;
+                    case "Comments recently": // 最近评论
+                        for (int mid : this.rateRecentlyMovies)
+                            movies.add(this.movieMap.get(mid));
+                        break;
+                    default: return null;
+                }
+                break;
+            default:
+                return null;
+        }
+
+        if (movies.size() > size) {
+            return movies.subList(0, size);
+        }
+        return movies;
+    }
+
+    //get movie object by movie id
+    public Movie getMovieById(int movieId){
+        return this.movieMap.get(movieId);
+    }
+
+    //get user object by user id
+    public User getUserById(int userId){
+        return this.userMap.get(userId);
+    }
 }

@@ -10,6 +10,27 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/BusinessServer/src/main/java/com/halorecsys/service/RecommendationService.java">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/BusinessServer/src/main/java/com/halorecsys/utils/Config.java">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/BusinessServer/src/main/resources/webroot/index.html">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/Recommender/ContentRecommender/src/main/scala/content/ContentRecommender.scala">
           <value>
             <Attribute>

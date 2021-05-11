@@ -109,25 +109,20 @@
 
 var getUrl = window.location;
 var baseUrl = getUrl .protocol + "//" + getUrl.host + "/"
-console.log("...................")
-addGenreRow('#recPage', 'Action', 'action-collection', 8, baseUrl, 1);
-addGenreRow('#recPage', 'Romance', 'romance-collection', 8, baseUrl, 1);
-addGenreRow('#recPage', 'Thriller', 'thriller-collection', 8, baseUrl, 1);
-addGenreRow('#recPage', 'Comedy', 'comedy-collection', 8, baseUrl, 1);
-addGenreRow('#recPage', 'Drama', 'drama-collection', 8, baseUrl, 1);
-addGenreRow('#recPage', 'Adventure', 'adventure-collection', 8, baseUrl, 1);
 
-<!--addGenreRow('#recPage', 0,'Action', 'action-collection', 8, baseUrl);-->
-<!--addGenreRow('#recPage', 0，'Romance', 'romance-collection', 8, baseUrl);-->
-<!--addGenreRow('#recPage', 0，'Thriller', 'thriller-collection', 8, baseUrl);-->
-<!--addGenreRow('#recPage', 0，'Comedy', 'comedy-collection', 8, baseUrl);-->
-<!--addGenreRow('#recPage', 0，'Drama', 'drama-collection', 8, baseUrl);-->
-<!--addGenreRow('#recPage', 0，'Adventure', 'adventure-collection', 8, baseUrl);-->
+addGenreRow('#recPage', 'Action', 'action-collection', 16, baseUrl, 0);
+addGenreRow('#recPage', 'Romance', 'romance-collection', 16, baseUrl, 0);
+addGenreRow('#recPage', 'Thriller', 'thriller-collection', 16, baseUrl, 0);
+addGenreRow('#recPage', 'Comedy', 'comedy-collection', 16, baseUrl, 0);
+addGenreRow('#recPage', 'Drama', 'drama-collection', 16, baseUrl, 0);
+addGenreRow('#recPage', 'Adventure', 'adventure-collection', 16, baseUrl, 0);
+addRowSplit('#recPage', '电影分类');
 
-<!--addGenreRow('#recPage', 1，'Most comments', 'Most-comments-collection', 8, baseUrl);-->
-<!--addGenreRow('#recPage', 1，'Highest score', 'Highest-score-collection', 8, baseUrl);-->
-<!--addGenreRow('#recPage', 1，'Genres TopN', 'Genres-TopN-collection', 8, baseUrl);-->
-<!--addGenreRow('#recPage', 1，'Comments recently', 'Comments-recently-collection', 8, baseUrl);-->
+addGenreRow('#recPage', 'Most Comments', 'Most-comments-collection', 8, baseUrl, 1);
+addGenreRow('#recPage', 'Highest Score', 'Highest-score-collection', 8, baseUrl, 1);
+addGenreRow('#recPage', 'Genres TopN', 'Genres-TopN-collection', 16, baseUrl, 1);
+addGenreRow('#recPage', 'Comments Recently', 'Comments-recently-collection', 8, baseUrl, 1);
+addRowSplit('#recPage', '离线统计推荐');
 
 
 </script>

@@ -27,7 +27,7 @@ public class DataLoader {
     HashMap<Integer, Movie> movieMap;
     HashMap<Integer, User> userMap;
 
-    // map movies to specific categories
+    // map all movies to specific categories
     HashMap<String, List<Integer>> genresMap;
 
     // statistic recommendation
@@ -39,8 +39,8 @@ public class DataLoader {
     List<Integer> highScoreMovies;
     // Rated most recently movies
     List<Integer> rateRecentlyMovies;
-    // top 20 high average score in categories
-    List<Integer> genresTopMovies;
+    // top N high average score in categories
+    HashMap<String, List<Integer>> genresTopMovies;
 
     // Collaborative Filter Recommendation
     List<Integer> lfmRecMovies;
@@ -56,7 +56,7 @@ public class DataLoader {
         this.rateMostMovies = new ArrayList<>();
         this.highScoreMovies = new ArrayList<>();
         this.rateRecentlyMovies = new ArrayList<>();
-        this.genresTopMovies = new ArrayList<>();
+        this.genresTopMovies = new HashMap<>();
 
         this.lfmRecMovies = new ArrayList<>();
 
@@ -212,7 +212,7 @@ public class DataLoader {
             }
             });
             List<Integer> temp = movielist.stream().map(p -> p.fst).collect(Collectors.toList());
-            this.genresMap.put(genre, temp);
+            this.genresTopMovies.put(genre, temp);
         }
     }
 
@@ -245,7 +245,7 @@ public class DataLoader {
         switch (type) {
             case 0:
                 if (null != genre) {
-                    for (int mid : this.genresMap.get(type)) {
+                    for (int mid : this.genresMap.get(genre)) {
                         movies.add(this.movieMap.get(mid));
                     }
                     switch (sortBy) {
@@ -257,24 +257,26 @@ public class DataLoader {
                 break;
             case 1:
                 switch (genre) {
-                    case "Most comments": // 最多评分电影
+                    case "Most Comments": // 最多评分电影
                         for (int mid : this.rateMostMovies)
                             movies.add(this.movieMap.get(mid));
                         break;
-                    case "Highest score": // 评分最高
+                    case "Highest Score": // 评分最高
                         for (int mid : this.highScoreMovies)
                             movies.add(this.movieMap.get(mid));
                         break;
-                    case "Genres-TopN": // 每个类别评分最高
-                        for (int mid : this.genresTopMovies)
-                            movies.add(this.movieMap.get(mid));
+                    case "Genres TopN": // 每个类别评分最高
+                        for (String g : this.genresTopMovies.keySet()) {
+                            movies.add(this.movieMap.get(this.genresTopMovies.get(g).get(0)));
+                        }
                         break;
-                    case "Comments recently": // 最近评论
+                    case "Comments Recently": // 最近评论
                         for (int mid : this.rateRecentlyMovies)
                             movies.add(this.movieMap.get(mid));
                         break;
                     default: return null;
                 }
+
                 break;
             default:
                 return null;

@@ -64,6 +64,11 @@
     $('#'+rowId).append(divstr);
 };
 
+function addRowSplit(pageId, rowName) {
+ var divstr = '<h2>' +rowName+ '</h2> \
+        <hr style="color:#987cb9 size:3 !important">'
+     $(pageId).prepend(divstr);
+};
 
 function addRowFrame(pageId, rowName, rowId, baseUrl) {
  var divstr = '<div class="frontpage-section-top"> \
@@ -84,7 +89,7 @@ function addRowFrame(pageId, rowName, rowId, baseUrl) {
 function addRowFrameWithoutLink(pageId, rowName, rowId, baseUrl) {
  var divstr = '<div class="frontpage-section-top"> \
                 <div class="explore-header frontpage-section-header">\
-                 <a class="plainlink" title="go to the full list" href="'+baseUrl+'collection.html?type=genre&value='+rowName+'">' + rowName + '</a> \
+                  <span class="plainlink" >'+ rowName +' </span> \
                 </div>\
                 <div class="movie-row">\
                  <div class="movie-row-bounds">\
@@ -108,9 +113,12 @@ function addRowFrameWithoutLink(pageId, rowName, rowId, baseUrl) {
 //};
 
 function addGenreRow(pageId, rowName, rowId, size, baseUrl, type) {
-    console.log(".....")
-    addRowFrame(pageId, rowName, rowId, baseUrl);
-    console.log(baseUrl + "getrecommendation?genre="+rowName+"&size="+size+"&sortby=rating"+"&type="+type);
+    if (type == 0) {
+        addRowFrame(pageId, rowName, rowId, baseUrl);
+    }
+    else if (type == 1) {
+        addRowFrameWithoutLink(pageId, rowName, rowId, baseUrl);
+    }
     $.getJSON(baseUrl + "getrecommendation?genre="+rowName+"&size="+size+"&sortby=rating"+"&type="+type, function(result){
         $.each(result, function(i, movie){
           appendMovie2Row(rowId, movie.title, movie.movieId, movie.releaseYear, movie.averageRating.toPrecision(2), movie.ratingNumber, movie.genres,baseUrl);

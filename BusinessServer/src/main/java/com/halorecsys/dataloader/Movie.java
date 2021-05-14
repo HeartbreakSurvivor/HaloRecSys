@@ -26,8 +26,6 @@ public class Movie {
     int ratingNumber;
     //average rating score
     double averageRating;
-    // movies that related to current movie
-    List<Movie> relatedMovies;
 
     //embedding of the movie
     @JsonIgnore
@@ -48,7 +46,6 @@ public class Movie {
         this.genres = new ArrayList<>();
         this.ratings = new ArrayList<>();
         this.topRatings = new LinkedList<>();
-        this.relatedMovies = new ArrayList<>();
         this.emb = null;
     }
 
@@ -90,10 +87,6 @@ public class Movie {
 
     public List<Rating> getRatings() {
         return ratings;
-    }
-
-    public List<Movie> getRelatedMovies() {
-        return relatedMovies;
     }
 
     public String getImdbId() {

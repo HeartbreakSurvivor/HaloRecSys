@@ -1,8 +1,6 @@
 package com.halorecsys;
 
-import com.halorecsys.service.MovieService;
-import com.halorecsys.service.RecommendationService;
-import com.halorecsys.service.SimilarMovieService;
+import com.halorecsys.service.*;
 import com.halorecsys.utils.Config;
 import com.halorecsys.dataloader.DataLoader;
 
@@ -64,10 +62,11 @@ public class RecServer {
         // register different service to servlets
         context.addServlet(DefaultServlet.class,"/");
         context.addServlet(new ServletHolder(new MovieService()), "/getmovie");
-//        context.addServlet(new ServletHolder(new UserService()), "/getuser");
+        context.addServlet(new ServletHolder(new UserService()), "/getuser");
         context.addServlet(new ServletHolder(new SimilarMovieService()), "/getsimilarmovie");
+        context.addServlet(new ServletHolder(new SimilarUserService()), "/getsimilaruser");
         context.addServlet(new ServletHolder(new RecommendationService()), "/getrecommendation");
-//        context.addServlet(new ServletHolder(new RecForYouService()), "/getrecforyou");
+        context.addServlet(new ServletHolder(new RecForYouService()), "/getrecforyou");
 
         server.setHandler(context);
         System.out.println("Halo recommendation system has started");

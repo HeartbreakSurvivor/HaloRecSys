@@ -164,7 +164,7 @@ function addUserHistory(pageId, containerId, userId, baseUrl){
                 </div>\
                </div>'
     $(pageId).prepend(rowDiv);
-
+    console.log("get user history...")
     $.getJSON(baseUrl + "getuser?id="+userId, function(userObject){
             $.each(userObject.ratings, function(i, rating){
                 $.getJSON(baseUrl + "getmovie?id="+rating.rating.movieId, function(movieObject){
@@ -190,7 +190,7 @@ function addRecForYou(pageId, containerId, userId, baseUrl){
                </div>'
     $(pageId).prepend(rowDiv);
 
-    $.getJSON(baseUrl + "getrecforyou?id="+userId+"&size=32&model=emb", function(result){
+    $.getJSON(baseUrl + "getrecforyou?id="+userId+"&size=10&mode=lfm", function(result){
                 $.each(result, function(i, movie){
                   appendMovie2Row(containerId, movie.title, movie.movieId, movie.releaseYear, movie.averageRating.toPrecision(2), movie.ratingNumber, movie.genres,baseUrl);
                 });
@@ -220,6 +220,7 @@ function addMovieDetails(containerId, movieId, baseUrl) {
                             ratingUsers+="</span>";
                         }
                 });
+        console.log("ratingUsers: ", ratingUsers);
 
         var movieDetails = '<div class="row movie-details-header movie-details-block">\
                                         <div class="col-md-2 header-backdrop">\
@@ -268,45 +269,67 @@ function addMovieDetails(containerId, movieId, baseUrl) {
 
 function addUserDetails(containerId, userId, baseUrl) {
 
-    $.getJSON(baseUrl + "getuser?id="+userId, function(userObject){
-        var userDetails = '<div class="row movie-details-header movie-details-block">\
-                                        <div class="col-md-2 header-backdrop">\
-                                            <img alt="movie backdrop image" height="200" src="./images/avatar/'+userObject.userId%10+'.png">\
-                                        </div>\
-                                        <div class="col-md-9"><h1 class="movie-title"> User'+userObject.userId+' </h1>\
-                                            <div class="row movie-highlights">\
-                                                <div class="col-md-2">\
-                                                    <div class="heading-and-data">\
-                                                        <div class="movie-details-heading">#Watched Movies</div>\
-                                                        <div> '+userObject.ratingCount+' </div>\
-                                                    </div>\
-                                                    <div class="heading-and-data">\
-                                                        <div class="movie-details-heading"> Average Rating Score</div>\
-                                                        <div> '+userObject.averageRating.toPrecision(2)+' stars\
-                                                        </div>\
-                                                    </div>\
-                                                </div>\
-                                                <div class="col-md-3">\
-                                                    <div class="heading-and-data">\
-                                                        <div class="movie-details-heading"> Highest Rating Score</div>\
-                                                        <div> '+userObject.highestRating+' stars</div>\
-                                                    </div>\
-                                                    <div class="heading-and-data">\
-                                                        <div class="movie-details-heading"> Lowest Rating Score</div>\
-                                                        <div> '+userObject.lowestRating+' stars\
-                                                        </div>\
-                                                    </div>\
-                                                </div>\
-                                                <div class="col-md-6">\
-                                                    <div class="heading-and-data">\
-                                                        <div class="movie-details-heading">Favourite Genres</div>\
-                                                        '+'action'+'\
-                                                    </div>\
-                                                </div>\
-                                            </div>\
-                                        </div>\
-                                    </div>'
-        $("#"+containerId).prepend(userDetails);
+    $.getJSON(baseUrl + "getuser?id="+userId, function(userObject) {
+        console.log("get similar users");
+        // get similar users
+        var similarUsers = "";
+        $.getJSON(baseUrl + "getsimilaruser?userId="+userId+"&size=10&mode=lfm", function(result){
+               //console.log("result.length: ", result.length);
+               $.each(result, function(i, user) {
+                       //console.log("get users: ", i);
+                       //console.log("get users: ", user);
+                       similarUsers += ('<span><a href="'+baseUrl+'user.html?id='+user.userId+'"><b>User'+user.userId+'</b></a>');
+                       if(i < result.length-1) {
+                           similarUsers+=", </span>";
+                       }else{
+                           similarUsers+="</span>";
+                       }
+               });
+               //console.log("similarUsers: ", similarUsers);
+
+               var userDetails = '<div class="row movie-details-header movie-details-block">\
+                           <div class="col-md-2 header-backdrop">\
+                               <img alt="movie backdrop image" height="200" src="./images/avatar/'+userObject.userId%10+'.png">\
+                           </div>\
+                           <div class="col-md-9"><h1 class="movie-title"> User'+userObject.userId+' </h1>\
+                               <div class="row movie-highlights">\
+                                   <div class="col-md-2">\
+                                       <div class="heading-and-data">\
+                                           <div class="movie-details-heading">#Watched Movies</div>\
+                                           <div> '+userObject.ratingCount+' </div>\
+                                       </div>\
+                                       <div class="heading-and-data">\
+                                           <div class="movie-details-heading"> Average Rating Score</div>\
+                                           <div> '+userObject.averageRating.toPrecision(2)+' stars\
+                                           </div>\
+                                       </div>\
+                                   </div>\
+                                   <div class="col-md-3">\
+                                       <div class="heading-and-data">\
+                                           <div class="movie-details-heading"> Highest Rating Score</div>\
+                                           <div> '+userObject.highestRating+' stars</div>\
+                                       </div>\
+                                       <div class="heading-and-data">\
+                                           <div class="movie-details-heading"> Lowest Rating Score</div>\
+                                           <div> '+userObject.lowestRating+' stars\
+                                           </div>\
+                                       </div>\
+                                   </div>\
+                                   <div class="col-md-6">\
+                                       <div class="heading-and-data">\
+                                           <div class="movie-details-heading">Favourite Genres</div>\
+                                           '+'action'+'\
+                                       </div>\
+                                       <div class="heading-and-data">\
+                                           <div class="movie-details-heading">Similar users</div>\
+                                           '+similarUsers+'\
+                                       </div>\
+                                   </div>\
+                               </div>\
+                           </div>\
+                       </div>'
+            $("#"+containerId).prepend(userDetails);
+        });
     });
 };
 

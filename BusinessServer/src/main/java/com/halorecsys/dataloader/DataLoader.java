@@ -290,6 +290,67 @@ public class DataLoader {
         return movies;
     }
 
+    public List<Movie> getUserRecList(int userId, int size, String mode) {
+        if (null == mode) return null;
+        switch (mode) {
+            case "lfm": // 通过LFM协同过滤算法来计算用户电影推荐列表
+                MongoCollection<Document> similarMovieTable = MongoDBClient.getInstance().getDatabase(Config.DATABASE_NAME).getCollection(Config.LFM_USER_RECS);
+                Document docs = similarMovieTable.find(eq("uid", userId)).first();
+                if (null != docs) {
+                    List<Integer> movielist = new ArrayList<>();
+                    ArrayList<Document> recs = docs.get("recs", ArrayList.class);
+                    int count = 0;
+                    for (Document doc : recs) {
+                        movielist.add(doc.getInteger("mid"));
+                        count ++;
+                        if (count == size) {
+                            break;
+                        }
+                    }
+                    List<Movie> res = new ArrayList<>();
+                    for (Integer t : movielist) {
+                        res.add(this.movieMap.get(t));
+                    }
+                    return res;
+                }
+                break;
+            case "emb": // 通过embedding向量来计算用户电影推荐列表
+                break;
+            default:
+                break;
+        }
+        return null;
+    }
+
+    public List<User> getSimilarUsers(int userId, int size, String mode) {
+        if (null == mode) return null;
+        switch (mode) {
+            case "lfm": //根据协同过滤算法来计算电影相似度
+                MongoCollection<Document> similarMovieTable = MongoDBClient.getInstance().getDatabase(Config.DATABASE_NAME).getCollection(Config.LFM_USER_SIM_RECS);
+                Document docs = similarMovieTable.find(eq("uid", userId)).first();
+                if (null != docs) {
+                    // find the most topN similar movies
+                    List<User> userList = new ArrayList<>();
+                    ArrayList<Document> recs = docs.get("sims", ArrayList.class);
+                    int count = 0;
+                    for (Document recDoc : recs) {
+                        userList.add(this.userMap.get(recDoc.getInteger("uid")));
+                        count ++;
+                        if (count == size) {
+                            break;
+                        }
+                    }
+                    return userList;
+                }
+                break;
+            case "emb":
+                break;
+            default:
+                return null;
+        }
+        return null;
+    }
+
     public List<Movie> getSimilarMovies(int movieId, int size, String mode) {
         if (null == mode) return null;
         switch (mode) {
@@ -308,9 +369,9 @@ public class DataLoader {
                             break;
                         }
                     }
-                    for (Pair<Integer, Double> m : movielist) {
-                        System.out.println(m.snd + " ");
-                    }
+//                    for (Pair<Integer, Double> m : movielist) {
+//                        System.out.println(m.snd + " ");
+//                    }
                     List<Integer> temp = movielist.stream().map(p -> p.fst).collect(Collectors.toList());
                     List<Movie> res = new ArrayList<>();
                     for (Integer t : temp) {

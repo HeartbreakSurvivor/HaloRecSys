@@ -29,4 +29,8 @@ hs_err_pid*
 .idea/
 
 BusinessServer/target/
+Recommender/DataLoader/target/
+Recommender/OfflineRecommender/target/
+Recommender/StatisticsRecommender/target/
+
 

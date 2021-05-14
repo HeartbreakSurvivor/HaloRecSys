@@ -19,10 +19,7 @@ public class User {
     double lowestRating = 5.0;
     int ratingCount = 0;
 
-    // 相似用户列表
-    List<Integer> similarUsers;
-
-    // @JsonSerialize(using = RatingListSerializer.class)
+    @JsonSerialize(using = RatingListSerializer.class)
     List<Rating> ratings;
 
     //embedding of the movie
@@ -31,7 +28,6 @@ public class User {
 
     public User(){
         this.ratings = new ArrayList<>();
-        this.similarUsers = new ArrayList<>();
         this.emb = null;
     }
 
@@ -62,8 +58,6 @@ public class User {
         }
         ratingCount++;
     }
-
-    public void addSimilarUser(int uid) { this.similarUsers.add(uid); }
 
     public double getAverageRating() {
         return averageRating;

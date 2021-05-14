@@ -1,6 +1,8 @@
 package com.halorecsys;
 
+import com.halorecsys.service.MovieService;
 import com.halorecsys.service.RecommendationService;
+import com.halorecsys.service.SimilarMovieService;
 import com.halorecsys.utils.Config;
 import com.halorecsys.dataloader.DataLoader;
 
@@ -50,7 +52,7 @@ public class RecServer {
                 Config.MONGODB_RATING_COLLECTION, Config.MONGODB_LINK_COLLECTION);
         DataLoader.getInstance().LoadStatisticsRecsData(Config.DATABASE_NAME, Config.RATE_MOST_MOVIES,
                 Config.RATE_MOST_RECENTLY_MOVIES, Config.AVERAGE_RATINGS_MOVIES, Config.GENRES_TOP_N_MOVIES);
-        // DataLoader.getInstance().LoadLFMRecsData(Config.LFM_MOVIE_RECS, Config.LFM_USER_RECS, Config.LFM_USER_SIM_RECS);
+        //DataLoader.getInstance().LoadLFMRecsData(Config.LFM_MOVIE_RECS, Config.LFM_USER_RECS, Config.LFM_USER_SIM_RECS);
 
         // create server context
         ServletContextHandler context = new ServletContextHandler();
@@ -61,9 +63,9 @@ public class RecServer {
 
         // register different service to servlets
         context.addServlet(DefaultServlet.class,"/");
-//        context.addServlet(new ServletHolder(new MovieService()), "/getmovie");
+        context.addServlet(new ServletHolder(new MovieService()), "/getmovie");
 //        context.addServlet(new ServletHolder(new UserService()), "/getuser");
-//        context.addServlet(new ServletHolder(new SimilarMovieService()), "/getsimilarmovie");
+        context.addServlet(new ServletHolder(new SimilarMovieService()), "/getsimilarmovie");
         context.addServlet(new ServletHolder(new RecommendationService()), "/getrecommendation");
 //        context.addServlet(new ServletHolder(new RecForYouService()), "/getrecforyou");
 

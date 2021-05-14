@@ -13,6 +13,8 @@ import org.bson.Document;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.mongodb.client.model.Filters.eq;
+
 /**
  * @program: HaloRecSys
  * @description: Load all kinds of data from MongoDB to Memory
@@ -232,7 +234,7 @@ public class DataLoader {
                 default:
             }
 
-            if (movies.size() > size){
+            if (movies.size() > size) {
                 return movies.subList(0, size);
             }
             return movies;
@@ -286,6 +288,43 @@ public class DataLoader {
             return movies.subList(0, size);
         }
         return movies;
+    }
+
+    public List<Movie> getSimilarMovies(int movieId, int size, String mode) {
+        if (null == mode) return null;
+        switch (mode) {
+            case "lfm": //根据协同过滤算法来计算电影相似度
+                MongoCollection<Document> similarMovieTable = MongoDBClient.getInstance().getDatabase(Config.DATABASE_NAME).getCollection(Config.LFM_MOVIE_RECS);
+                Document docs = similarMovieTable.find(eq("mid", movieId)).first();
+                if (null != docs) {
+                    // find the most topN similar movies
+                    List<Pair<Integer,Double>> movielist = new ArrayList<>();
+                    ArrayList<Document> recs = docs.get("recs", ArrayList.class);
+                    int count = 0;
+                    for (Document recDoc : recs) {
+                        movielist.add(new Pair<Integer,Double>(recDoc.getInteger("mid"), recDoc.getDouble("score")));
+                        count ++;
+                        if (count == size) {
+                            break;
+                        }
+                    }
+                    for (Pair<Integer, Double> m : movielist) {
+                        System.out.println(m.snd + " ");
+                    }
+                    List<Integer> temp = movielist.stream().map(p -> p.fst).collect(Collectors.toList());
+                    List<Movie> res = new ArrayList<>();
+                    for (Integer t : temp) {
+                        res.add(this.movieMap.get(t));
+                    }
+                    return res;
+                }
+                break;
+            case "emb":
+                break;
+            default:
+                return null;
+        }
+        return null;
     }
 
     //get movie object by movie id

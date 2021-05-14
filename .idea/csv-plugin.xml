@@ -10,6 +10,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/BusinessServer/src/main/java/com/halorecsys/dataloader/DataLoader.java">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/BusinessServer/src/main/java/com/halorecsys/service/RecommendationService.java">
           <value>
             <Attribute>

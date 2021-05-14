@@ -31,7 +31,7 @@ case class SimUsers(uid: Int, sims: Seq[UserSimilarRec])
 
 object LFMRecommender {
 	//Mongo中保存的用户评分Rating表
-	val MONGODB_RATING_COLLECTION = "Rating"
+	val MONGODB_RATING_COLLECTION = "Ratings"
 
 	//LFM模型输出结果写入MongoDB
 	// 每个用户的评分输出表
@@ -93,12 +93,14 @@ object LFMRecommender {
 
 		val userRecs = predRatings.filter(_.rating > 0) //过滤出评分大于0的所有结果
 			.map(rating => (rating.user, (rating.product, rating.rating))) //转换格式，每一行换成[user, (movie, score)]
-			.groupByKey //按照udi进行分组
+			.groupByKey //按照uid进行分组
 			.map{
 				// GroupByKey之后，这里得到的recs是一个RDD，先转换成列表，再排序，再去前K个，再转换成Recommendation样例类的格式
 				case (uid, recs) => UserRecs(uid, recs.toList.sortWith(_._2 > _._2).take(USER_MAX_RECOMMENDATION).map(x => Recommendation(x._1, x._2)))
 			}
 			.toDF()
+		userRecs.printSchema()
+		println(userRecs.count())
 		// 写入对应的表中
 		userRecs.write
 			.option("uri", mongoConfig.uri)

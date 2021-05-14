@@ -142,7 +142,7 @@ function addRelatedMovies(pageId, containerId, movieId, baseUrl){
                </div>'
     $(pageId).prepend(rowDiv);
 
-    $.getJSON(baseUrl + "getsimilarmovie?movieId="+movieId+"&size=16&model=emb", function(result){
+    $.getJSON(baseUrl + "getsimilarmovie?movieId="+movieId+"&size=16&mode=lfm", function(result){
             $.each(result, function(i, movie){
               appendMovie2Row(containerId, movie.title, movie.movieId, movie.releaseYear, movie.averageRating.toPrecision(2), movie.ratingNumber, movie.genres,baseUrl);
             });

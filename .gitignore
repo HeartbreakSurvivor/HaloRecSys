@@ -26,6 +26,7 @@ hs_err_pid*
 *.idea
 /target/
 .DS_Store
+.idea/
 
 BusinessServer/target/
 

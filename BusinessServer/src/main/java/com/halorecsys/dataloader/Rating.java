@@ -16,7 +16,7 @@ public class Rating {
         this.movieId = mid;
         this.userId = uid;
         this.score = score;
-        this.timestamp = timestamp;
+        this.timestamp = ts;
     }
     
     public int getMovieId() { return movieId; }

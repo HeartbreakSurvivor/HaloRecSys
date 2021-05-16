@@ -270,7 +270,6 @@ function addMovieDetails(containerId, movieId, baseUrl) {
 function addUserDetails(containerId, userId, baseUrl) {
 
     $.getJSON(baseUrl + "getuser?id="+userId, function(userObject) {
-        console.log("get similar users");
         // get similar users
         var similarUsers = "";
         $.getJSON(baseUrl + "getsimilaruser?userId="+userId+"&size=10&mode=lfm", function(result){
@@ -285,7 +284,21 @@ function addUserDetails(containerId, userId, baseUrl) {
                            similarUsers+="</span>";
                        }
                });
-               //console.log("similarUsers: ", similarUsers);
+              //console.log("similarUsers: ", similarUsers);
+
+                var genres = "";
+                console.log("userobject: ", userObject.prefGenres);
+
+                $.each(userObject.prefGenres, function(i, g){
+                        console.log("get genre: ", g);
+                        genres += ('<span><a href="'+baseUrl+'collection.html?type=genre&value='+g+'"><b>'+g+'</b></a>');
+                        if(i < userObject.prefGenres.length-1){
+                            genres+=", </span>";
+                        }else{
+                            genres+="</span>";
+                        }
+                });
+                console.log("genres: ", genres);
 
                var userDetails = '<div class="row movie-details-header movie-details-block">\
                            <div class="col-md-2 header-backdrop">\
@@ -318,7 +331,7 @@ function addUserDetails(containerId, userId, baseUrl) {
                                    <div class="col-md-6">\
                                        <div class="heading-and-data">\
                                            <div class="movie-details-heading">Favourite Genres</div>\
-                                           '+'action'+'\
+                                           '+genres+'\
                                        </div>\
                                        <div class="heading-and-data">\
                                            <div class="movie-details-heading">Similar users</div>\

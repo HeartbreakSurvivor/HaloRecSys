@@ -40,6 +40,12 @@ case class Link(mid:Int, imdbId:String, tmdbId:String)
 case class Tag(uid:Int, mid:Int, tag:String, timestamp:Int)
 
 /*
+* 用户数据样例类
+* 	userId,password
+* */
+case class User(username:String, password:String)
+
+/*
 * 定义MongoDB数据库相关配置信息样例类
 * */
 case class MongoConfig(uri:String, db:String)
@@ -65,6 +71,7 @@ object DataLoader {
 	val MONGODB_RATING_COLLECTION = "Ratings"
 	val MONGODB_LINK_COLLECTION = "Links"
 	val MONGODB_TAG_COLLECTION = "Tags"
+	val MONGODB_USER_COLLECTION = "Users" // 记录所有用户以及密码的表
 
 	val ES_MOVIE_INDEX = "ES_Movie"
 
@@ -123,6 +130,24 @@ object DataLoader {
 			}
 		).toDF()
 
+		// 构造用户数据表
+		val userDF = ratingRDD.map(
+			item => {
+				val attr = item.split(",")
+				(attr(0), "123456")
+			}
+		  )
+		  .distinct() // 去重
+		  .map(
+			item => {
+				val username = "User".concat(item._1)
+				User(username, item._2)  // 改名为 "Userxxx"
+			}
+		).toDF()
+
+		userDF.printSchema()
+		userDF.first()
+
 		val linkRDDwithHead = spark.sparkContext.textFile(LINK_DATA_PATH)
 		val linkHead = linkRDDwithHead.first()
 		val linkRDD = linkRDDwithHead.filter(_ != linkHead)
@@ -153,7 +178,7 @@ object DataLoader {
 		implicit val mongoConfig = MongoConfig(config("mongo.uri"), config("mongo.db"))
 
 		// 保存到MongoDB中
-		storeDataToMongoDB(movieDF, ratingDF, linkDF, tagDF)
+		storeDataToMongoDB(movieDF, ratingDF, linkDF, tagDF, userDF)
 
 		//数据预处理，把Movie对应的Tag信息加到Movie里面去，加一个新列，名为"tags",格式为 tag1|tag2|tag3|...
 		// 方便ElasticSearch
@@ -172,7 +197,7 @@ object DataLoader {
 //		storeDataToES(movieWithTagsDF)
 	}
 
-	def storeDataToMongoDB(movieDF:DataFrame, ratingDF:DataFrame, linkDF:DataFrame, tagDF:DataFrame)(implicit mongoConfig: MongoConfig): Unit = {
+	def storeDataToMongoDB(movieDF:DataFrame, ratingDF:DataFrame, linkDF:DataFrame, tagDF:DataFrame, userDF:DataFrame)(implicit mongoConfig: MongoConfig): Unit = {
 		//新建到MomgoDB的连接
 		val mongoClient = MongoClient(MongoClientURI(mongoConfig.uri))
 
@@ -181,6 +206,7 @@ object DataLoader {
 		mongoClient(mongoConfig.db)(MONGODB_RATING_COLLECTION).drop()
 		mongoClient(mongoConfig.db)(MONGODB_LINK_COLLECTION).drop()
 		mongoClient(mongoConfig.db)(MONGODB_TAG_COLLECTION).drop()
+		mongoClient(mongoConfig.db)(MONGODB_USER_COLLECTION).drop()
 
 		movieDF.write
 		  .option("uri", mongoConfig.uri) //定义Mongo的url
@@ -210,6 +236,13 @@ object DataLoader {
 		  .format("com.mongodb.spark.sql")
 		  .save()
 
+		userDF.write
+		  .option("uri", mongoConfig.uri)
+		  .option("collection", MONGODB_USER_COLLECTION)
+		  .mode("overwrite")
+		  .format("com.mongodb.spark.sql")
+		  .save()
+
 		//对数据表建索引
 		mongoClient(mongoConfig.db)(MONGODB_MOVIE_COLLECTION).createIndex(MongoDBObject("mid" -> 1))
 		mongoClient(mongoConfig.db)(MONGODB_RATING_COLLECTION).createIndex(MongoDBObject("uid" -> 1))
@@ -217,6 +250,7 @@ object DataLoader {
 		mongoClient(mongoConfig.db)(MONGODB_LINK_COLLECTION).createIndex(MongoDBObject("mid" -> 1))
 		mongoClient(mongoConfig.db)(MONGODB_TAG_COLLECTION).createIndex(MongoDBObject("uid" -> 1))
 		mongoClient(mongoConfig.db)(MONGODB_TAG_COLLECTION).createIndex(MongoDBObject("mid" -> 1))
+		mongoClient(mongoConfig.db)(MONGODB_USER_COLLECTION).createIndex(MongoDBObject("uid" -> 1))
 
 		mongoClient.close()
 	}

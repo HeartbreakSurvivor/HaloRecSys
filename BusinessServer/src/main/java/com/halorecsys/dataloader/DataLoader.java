@@ -153,6 +153,10 @@ public class DataLoader {
                 this.userMap.put(uid, user);
             }
             this.userMap.get(uid).addRating(rating);
+            if (score > 3.0) { //将评分大于3分的电影的类别设置为用户的喜爱类别
+                List<String> genres = movie.getGenres();
+                this.userMap.get(uid).setPrefGenres(genres);
+            }
             count++;
         }
         System.out.println("Loading " + count + " ratings data completed. ");
@@ -220,26 +224,6 @@ public class DataLoader {
 
     public void LoadLFMRecsData(String lfmUserMovieRecs, String lfmRelatedMovies, String lfmSimUsers) {
 
-    }
-
-    public List<Movie> getMoviesByGenre(String genre, int size, String sortBy){
-        if (null != genre){
-            List<Movie> movies = new ArrayList<>();
-            for (int mid : this.genresMap.get(genre)) {
-                movies.add(this.movieMap.get(mid));
-            }
-            switch (sortBy){
-                case "rating":movies.sort((m1, m2) -> Double.compare(m2.getAverageRating(), m1.getAverageRating()));break;
-                case "releaseYear": movies.sort((m1, m2) -> Integer.compare(m2.getReleaseYear(), m1.getReleaseYear()));break;
-                default:
-            }
-
-            if (movies.size() > size) {
-                return movies.subList(0, size);
-            }
-            return movies;
-        }
-        return null;
     }
 
     public List<Movie> getMoviesByType(int type, String genre, int size, String sortBy) {

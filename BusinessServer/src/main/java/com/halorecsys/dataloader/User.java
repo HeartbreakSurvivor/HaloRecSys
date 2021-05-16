@@ -1,6 +1,7 @@
 package com.halorecsys.dataloader;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,12 +23,17 @@ public class User {
     @JsonSerialize(using = RatingListSerializer.class)
     List<Rating> ratings;
 
+    @JsonSerialize
+    //用户感兴趣类别，取用户评分超过3分的电影的类别
+    List<String> prefGenres;
+
     //embedding of the movie
     @JsonIgnore
     Embedding emb;
 
     public User(){
         this.ratings = new ArrayList<>();
+        this.prefGenres = new ArrayList<>();
         this.emb = null;
     }
 
@@ -45,6 +51,16 @@ public class User {
 
     public void setRatings(List<Rating> ratings) {
         this.ratings = ratings;
+    }
+
+    public void setPrefGenres(List<String> genres) {
+        if (null == genres) return;
+        for (String g : genres) {
+            if (!this.prefGenres.contains(g)) {
+                this.prefGenres.add(g);
+            }
+        }
+
     }
 
     public void addRating(Rating rating) {

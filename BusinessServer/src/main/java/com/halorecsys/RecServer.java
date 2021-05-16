@@ -61,6 +61,10 @@ public class RecServer {
 
         // register different service to servlets
         context.addServlet(DefaultServlet.class,"/");
+        // user related service
+        context.addServlet(new ServletHolder(new MovieService()), "/register");
+        context.addServlet(new ServletHolder(new MovieService()), "/login");
+
         context.addServlet(new ServletHolder(new MovieService()), "/getmovie");
         context.addServlet(new ServletHolder(new UserService()), "/getuser");
         context.addServlet(new ServletHolder(new SimilarMovieService()), "/getsimilarmovie");

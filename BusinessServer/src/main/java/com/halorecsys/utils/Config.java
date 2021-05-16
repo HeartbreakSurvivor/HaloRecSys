@@ -16,6 +16,7 @@ public class Config {
     public static final String MONGODB_RATING_COLLECTION = "Ratings";
     public static final String MONGODB_LINK_COLLECTION = "Links";
     public static final String MONGODB_TAG_COLLECTION = "Tags";
+    public static final String MONGODB_USER_COLLECTION = "Users";
 
     public static final String ES_MOVIE_INDEX = "Movie";
 

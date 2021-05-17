@@ -21,10 +21,14 @@
         console.log(thisURL);
         function showUser(){
             if (null == username) {
-
+                $('#login_a').show();
             }
             else {
-                alert(username);
+<!--                var getUrl = window.location;-->
+<!--                var baseUrl = getUrl .protocol + "//" + getUrl.host + "/"-->
+<!--                $('#user_a').attr('href', baseUrl+"getuser?id="+username)-->
+                $('#user_a').text(username)
+                $('#user_a').show();
              }
         }
     </script>
@@ -57,9 +61,10 @@
                     </div>
                 </form>
             </div>
-            <div class="base-header-logo-container" style="float:right;display:line-block">
+            <div id ="login_form" class="base-header-logo-container" style="float:right;display:line-block">
                 <span class="base-header-logo-main">
-                    <a href="./login.html">Login</a>
+                    <a id="login_a" hidden href="./login.html">Login</a>
+                    <a id="user_a" hidden href="./users.html"></a>
                 </span>
             </div>
         </div>

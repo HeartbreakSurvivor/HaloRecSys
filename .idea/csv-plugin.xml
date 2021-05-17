@@ -45,6 +45,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/BusinessServer/src/main/resources/webroot/login.html">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/Recommender/ContentRecommender/src/main/scala/content/ContentRecommender.scala">
           <value>
             <Attribute>

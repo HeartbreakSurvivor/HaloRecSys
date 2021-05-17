@@ -14,14 +14,29 @@
     <link rel="shortcut icon" href="./resources/favicon.ico">
     <script src="./js/jquery-3.2.1.min.js"></script>
     <script src="./js/recsys.js?v=1.19"></script>
+    <script>
+        var thisURL = document.URL;
+        var getval = thisURL.split('?')[1];
+        var username = getval.split("=")[1];
+        console.log(thisURL);
+        function showUser(){
+            if (null == username) {
+
+            }
+            else {
+                alert(username);
+             }
+        }
+    </script>
+
 </head>
-<body id="root">
+<body id="root" onload="showUser()">
 <div>
     <header class="base-compact-header">
         <div class="ml4-container base-header-primary-container">
             <div class="base-header-logo-container">
                 <span class="base-header-logo-main">
-                    <a href="."><img alt="Sparrow RecSys Logo" height="30px" src="./images/sparrowrecsyslogo.png"/></a>
+                    <a href="."><img alt="Sparrow RecSys Logo" height="40px" src="./images/halorecsyslogo.png"/></a>
                 </span>
             </div>
             <div class="base-header-search-container">
@@ -41,6 +56,11 @@
                         </span>
                     </div>
                 </form>
+            </div>
+            <div class="base-header-logo-container" style="float:right;display:line-block">
+                <span class="base-header-logo-main">
+                    <a href="./login.html">Login</a>
+                </span>
             </div>
         </div>
     </header>

@@ -31,18 +31,17 @@ public class RegisterService extends HttpServlet {
             String password = request.getParameter("password");
             System.out.println("username: "+ username + " password: " + password);
 
+            StringBuilder msg = new StringBuilder("");
             PrintWriter out = response.getWriter();
-            if (UserModule.RegisterUser(username, password)) {
-                // 跳转到电影类别选择界面
-                HttpSession session = request.getSession();
-                session.setAttribute("username", username);
-                RequestDispatcher rd = request.getRequestDispatcher("welcome");
-                rd.forward(request, response);
+           if (UserModule.RegisterUser(username, password)) {
+                System.out.println("注册成功!");
+                msg.append("{\"res\":\"success\"}");
             } else {
-                out.print("用户名已存在!");
-                RequestDispatcher rd = request.getRequestDispatcher("index.html");
-                rd.include(request, response);
+                System.out.println("用户名已存在!");
+                msg.append("{\"res\":\"failed\",\"msg\":\"用户名已存在!\"}");
             }
+            out.println(new String(msg));
+            out.flush();
             out.close();
         }
         catch (Exception e) {

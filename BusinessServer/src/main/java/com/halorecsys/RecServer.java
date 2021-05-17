@@ -9,9 +9,13 @@ import java.net.URI;
 import java.net.InetSocketAddress;
 
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.SessionIdManager;
+import org.eclipse.jetty.server.session.DefaultSessionIdManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.util.resource.Resource;
 
 /**
@@ -59,11 +63,18 @@ public class RecServer {
         context.setWelcomeFiles(new String[] { "index.html" });
         context.getMimeTypes().addMimeMapping("txt","text/plain;charset=utf-8");
 
+        // specify the Session ID Manager
+        SessionIdManager idmanager = new DefaultSessionIdManager(server);
+        server.setSessionIdManager(idmanager);
+        // Specify the session handler
+        SessionHandler sessionsHandler = new SessionHandler();
+        context.setSessionHandler(sessionsHandler);
+
         // register different service to servlets
         context.addServlet(DefaultServlet.class,"/");
         // user related service
-        context.addServlet(new ServletHolder(new MovieService()), "/register");
-        context.addServlet(new ServletHolder(new MovieService()), "/login");
+        context.addServlet(new ServletHolder(new RegisterService()), "/register");
+        context.addServlet(new ServletHolder(new LoginService()), "/login");
 
         context.addServlet(new ServletHolder(new MovieService()), "/getmovie");
         context.addServlet(new ServletHolder(new UserService()), "/getuser");

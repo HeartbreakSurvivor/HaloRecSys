@@ -1,9 +1,6 @@
 package com.halorecsys.service;
 
 import com.halorecsys.modules.UserModule;
-import com.halorecsys.utils.Config;
-import com.halorecsys.utils.MongoDBClient;
-import com.mongodb.client.MongoDatabase;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServlet;
@@ -25,7 +22,7 @@ public class LoginService extends HttpServlet {
         try {
             System.out.println(LoginService.class.getName() + "...doPost...");
 
-            response.setContentType("application/json");
+            response.setContentType("pplication/json");
             response.setStatus(HttpServletResponse.SC_OK);
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Access-Control-Allow-Origin", "*");
@@ -34,17 +31,22 @@ public class LoginService extends HttpServlet {
             String password = request.getParameter("password");
             System.out.println("username: "+ username + " password: " + password);
 
+            StringBuilder msg = new StringBuilder("");
             PrintWriter out = response.getWriter();
-            if (UserModule.CheckUserInfo(username, password)) {
-                HttpSession session = request.getSession();
-                session.setAttribute("username", username);
-                RequestDispatcher rd = request.getRequestDispatcher("welcome");
-                rd.forward(request, response);
+            if (!UserModule.CheckUserInfo(username, password)) {
+                System.out.println("success");
+
+                HttpSession session = request.getSession(true);
+                if (null != session) {
+                    session.setAttribute("username", username);
+                }
+                msg.append("{\"res\":\"success\"}");
             } else {
-                out.print("用户或密码错误");
-                RequestDispatcher rd = request.getRequestDispatcher("index.html");
-                rd.include(request, response);
+                System.out.println("failed");
+                msg.append("{\"res\":\"failed\", \"msg\":\"用户名或者密码错误。\"}");
             }
+            out.println(new String(msg));
+            out.flush();
             out.close();
         }
         catch (Exception e) {

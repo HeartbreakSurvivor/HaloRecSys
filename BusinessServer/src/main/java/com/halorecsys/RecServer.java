@@ -51,7 +51,7 @@ public class RecServer {
         System.out.printf("Web Root URI: %s%n", webRootUri.getPath());
 
         DataLoader.getInstance().LoadMovieData(Config.DATABASE_NAME, Config.MONGODB_MOVIE_COLLECTION,
-                Config.MONGODB_RATING_COLLECTION, Config.MONGODB_LINK_COLLECTION);
+                Config.MONGODB_RATING_COLLECTION, Config.MONGODB_LINK_COLLECTION, Config.MONGODB_USER_COLLECTION);
         DataLoader.getInstance().LoadStatisticsRecsData(Config.DATABASE_NAME, Config.RATE_MOST_MOVIES,
                 Config.RATE_MOST_RECENTLY_MOVIES, Config.AVERAGE_RATINGS_MOVIES, Config.GENRES_TOP_N_MOVIES);
         //DataLoader.getInstance().LoadLFMRecsData(Config.LFM_MOVIE_RECS, Config.LFM_USER_RECS, Config.LFM_USER_SIM_RECS);

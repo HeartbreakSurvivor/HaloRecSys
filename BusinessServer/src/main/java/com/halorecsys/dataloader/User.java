@@ -17,8 +17,10 @@ public class User {
     int userId;
     double averageRating = 0;
     double highestRating = 0;
-    double lowestRating = 5.0;
+    double lowestRating = 0;
     int ratingCount = 0;
+    @JsonSerialize
+    String userName;
 
     @JsonSerialize(using = RatingListSerializer.class)
     List<Rating> ratings;
@@ -38,11 +40,15 @@ public class User {
     }
 
     public int getUserId() {
-        return userId;
+        return this.userName.hashCode();
     }
-
     public void setUserId(int userId) {
         this.userId = userId;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+        this.userId = userName.hashCode();
     }
 
     public List<Rating> getRatings() {

@@ -37,7 +37,7 @@ public class RecForYouService extends HttpServlet {
             String mode = request.getParameter("mode");
 
             //a simple method, just fetch all the movie in the genre
-            List<Movie> movies = DataLoader.getInstance().getUserRecList(Integer.parseInt(userId), Integer.parseInt(size), mode);
+            List<Movie> movies = DataLoader.getInstance().getUserRecList(Integer.parseInt(userId.substring(4)), Integer.parseInt(size), mode);
 
             //convert movie list to json format and return
             ObjectMapper mapper = new ObjectMapper();

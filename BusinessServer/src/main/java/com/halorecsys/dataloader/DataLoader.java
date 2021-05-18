@@ -2,6 +2,7 @@ package com.halorecsys.dataloader;
 
 import com.halorecsys.utils.Config;
 import com.halorecsys.utils.MongoDBClient;
+import com.mongodb.BasicDBList;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -27,7 +28,7 @@ public class DataLoader {
 
     // map Movies and users info to corresponding Id
     HashMap<Integer, Movie> movieMap;
-    HashMap<Integer, User> userMap;
+    HashMap<String, User> userMap;
 
     // map all movies to specific categories
     HashMap<String, List<Integer>> genresMap;
@@ -92,7 +93,7 @@ public class DataLoader {
         }
     }
 
-    public void LoadMovieData(String dbName, String movieTable, String ratingTable, String linkTable) {
+    public void LoadMovieData(String dbName, String movieTable, String ratingTable, String linkTable, String userTable) {
         MongoDatabase db = MongoDBClient.getInstance().getDatabase(dbName);
 
         int count = 0;
@@ -141,26 +142,48 @@ public class DataLoader {
             Double score = doc.getDouble("score");
             int timestamp = doc.getInteger("timestamp");
 
-            Rating rating = new Rating(mid, uid, score, timestamp);
+            String username = "User"+uid;
+            Rating rating = new Rating(mid, username, score, timestamp);
             // update current movie's rating list
             Movie movie = this.movieMap.get(mid);
             if (movie != null) {
                 movie.addRating(rating);
             }
-            if (!this.userMap.containsKey(uid)) {
+            if (!this.userMap.containsKey(username)) {
                 User user = new User();
-                user.setUserId(uid);
-                this.userMap.put(uid, user);
+                user.setUserName(username);
+                this.userMap.put(username, user);
             }
-            this.userMap.get(uid).addRating(rating);
+            this.userMap.get(username).addRating(rating);
             if (score > 3.0) { //将评分大于3分的电影的类别设置为用户的喜爱类别
                 List<String> genres = movie.getGenres();
-                this.userMap.get(uid).setPrefGenres(genres);
+                this.userMap.get(username).setPrefGenres(genres);
             }
             count++;
         }
         System.out.println("Loading " + count + " ratings data completed. ");
         count = 0;
+
+        //load user data
+        MongoCollection<Document> users = db.getCollection(userTable);
+        for (Document doc : users.find()) {
+            // parse each ratings data
+            String username = doc.getString("username");
+            if (null != username && !this.userMap.containsKey(username)) {
+                User user = new User();
+                user.setUserName(username);
+                // 记录每个用户的兴趣爱好
+                BasicDBList prefGenres = (BasicDBList)doc.get("preGenres");
+                if (null != prefGenres) {
+                    List<String> genres = new ArrayList<String>();
+                    for (Object g : prefGenres) {
+                        genres.add((String)g);
+                    }
+                    user.setPrefGenres(genres);
+                }
+                this.userMap.put(username, user);
+            }
+        }
 
         // load link data
         MongoCollection<Document> links = db.getCollection(linkTable);
@@ -253,7 +276,13 @@ public class DataLoader {
                         break;
                     case "Genres TopN": // 每个类别评分最高
                         for (String g : this.genresTopMovies.keySet()) {
-                            movies.add(this.movieMap.get(this.genresTopMovies.get(g).get(0)));
+                            // 去重
+                            for (int mIdx : this.genresTopMovies.get(g)) {
+                                if (!movies.contains(this.movieMap.get(mIdx))) {
+                                    movies.add(this.movieMap.get(mIdx));
+                                    break;
+                                }
+                            }
                         }
                         break;
                     case "Comments Recently": // 最近评论
@@ -318,7 +347,8 @@ public class DataLoader {
                     ArrayList<Document> recs = docs.get("sims", ArrayList.class);
                     int count = 0;
                     for (Document recDoc : recs) {
-                        userList.add(this.userMap.get(recDoc.getInteger("uid")));
+                        String username = "User"+recDoc.getInteger("uid");
+                        userList.add(this.userMap.get(username));
                         count ++;
                         if (count == size) {
                             break;
@@ -378,7 +408,15 @@ public class DataLoader {
     }
 
     //get user object by user id
-    public User getUserById(int userId){
-        return this.userMap.get(userId);
+    public User getUserByName(String userName){
+        return this.userMap.get(userName);
+    }
+
+    //add a new user object by user id
+    public void setUserByName(String username){
+        User user = new User();
+        user.setUserName(username);
+        System.out.println(username);
+        this.userMap.put(username, user);
     }
 }

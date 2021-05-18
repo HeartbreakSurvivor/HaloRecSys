@@ -203,23 +203,24 @@ function addMovieDetails(containerId, movieId, baseUrl) {
     $.getJSON(baseUrl + "getmovie?id="+movieId, function(movieObject){
         var genres = "";
         $.each(movieObject.genres, function(i, genre){
-                genres += ('<span><a href="'+baseUrl+'collection.html?type=genre&value='+genre+'"><b>'+genre+'</b></a>');
-                if(i < movieObject.genres.length-1){
-                    genres+=", </span>";
-                }else{
-                    genres+="</span>";
-                }
+            genres += ('<span><a href="'+baseUrl+'collection.html?type=genre&value='+genre+'"><b>'+genre+'</b></a>');
+            if(i < movieObject.genres.length-1){
+                genres+=", </span>";
+            }else{
+                genres+="</span>";
+            }
         });
 
         var ratingUsers = "";
-                $.each(movieObject.topRatings, function(i, rating){
-                        ratingUsers += ('<span><a href="'+baseUrl+'user.html?id='+rating.rating.userId+'"><b>User'+rating.rating.userId+'</b></a>');
-                        if(i < movieObject.topRatings.length-1){
-                            ratingUsers+=", </span>";
-                        }else{
-                            ratingUsers+="</span>";
-                        }
-                });
+        $.each(movieObject.topRatings, function(i, rating){
+            console.log(rating);
+            ratingUsers += ('<span><a href="'+baseUrl+'user.html?id='+rating.rating.userName+'"><b>'+rating.rating.userName+'</b></a>');
+            if(i < movieObject.topRatings.length-1){
+                ratingUsers+=", </span>";
+            }else{
+                ratingUsers+="</span>";
+            }
+        });
         console.log("ratingUsers: ", ratingUsers);
 
         var movieDetails = '<div class="row movie-details-header movie-details-block">\
@@ -268,23 +269,23 @@ function addMovieDetails(containerId, movieId, baseUrl) {
 };
 
 function addUserDetails(containerId, userId, baseUrl) {
-
     $.getJSON(baseUrl + "getuser?id="+userId, function(userObject) {
-        // get similar users
+        console.log("get similar users");
         var similarUsers = "";
         $.getJSON(baseUrl + "getsimilaruser?userId="+userId+"&size=10&mode=lfm", function(result){
-               //console.log("result.length: ", result.length);
-               $.each(result, function(i, user) {
-                       //console.log("get users: ", i);
-                       //console.log("get users: ", user);
-                       similarUsers += ('<span><a href="'+baseUrl+'user.html?id='+user.userId+'"><b>User'+user.userId+'</b></a>');
-                       if(i < result.length-1) {
-                           similarUsers+=", </span>";
-                       }else{
-                           similarUsers+="</span>";
-                       }
-               });
-              //console.log("similarUsers: ", similarUsers);
+               if (null !== result) {
+                    console.log("result.length: ", result.length);
+                      $.each(result, function(i, user) {
+                              console.log("get users: ", user);
+                              similarUsers += ('<span><a href="'+baseUrl+'user.html?id='+user.userName+'"><b>'+user.userName+'</b></a>');
+                              if(i < result.length-1) {
+                                  similarUsers+=", </span>";
+                              }else{
+                                  similarUsers+="</span>";
+                              }
+                      });
+                     console.log("similarUsers: ", similarUsers);
+               }
 
                 var genres = "";
                 console.log("userobject: ", userObject.prefGenres);
@@ -302,9 +303,9 @@ function addUserDetails(containerId, userId, baseUrl) {
 
                var userDetails = '<div class="row movie-details-header movie-details-block">\
                            <div class="col-md-2 header-backdrop">\
-                               <img alt="movie backdrop image" height="200" src="./images/avatar/'+userObject.userId%10+'.png">\
+                               <img alt="movie backdrop image" height="200" src="./images/avatar/'+Math.abs(userObject.userId)%10+'.png">\
                            </div>\
-                           <div class="col-md-9"><h1 class="movie-title"> User'+userObject.userId+' </h1>\
+                           <div class="col-md-9"><h1 class="movie-title"> '+userObject.userName+' </h1>\
                                <div class="row movie-highlights">\
                                    <div class="col-md-2">\
                                        <div class="heading-and-data">\

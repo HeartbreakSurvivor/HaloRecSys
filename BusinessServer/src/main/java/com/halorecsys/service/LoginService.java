@@ -33,7 +33,7 @@ public class LoginService extends HttpServlet {
 
             StringBuilder msg = new StringBuilder("");
             PrintWriter out = response.getWriter();
-            if (!UserModule.CheckUserInfo(username, password)) {
+            if (UserModule.CheckUserInfo(username, password)) {
                 System.out.println("success");
 
                 HttpSession session = request.getSession(true);

@@ -5,7 +5,7 @@
     <!--<base href="/">-->
     <base href="."/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-    <title>Home | Sparrow RecSys</title>
+    <title>Home | Halo RecSys</title>
     <meta name="description" content=""/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="theme-color" content="#ffffff"/>
@@ -22,13 +22,17 @@
         function showUser(){
             if (null == username) {
                 $('#login_a').show();
+                $('#user_a').hide();
+                $('#logobase').attr('href', ".")
             }
             else {
-<!--                var getUrl = window.location;-->
-<!--                var baseUrl = getUrl .protocol + "//" + getUrl.host + "/"-->
-<!--                $('#user_a').attr('href', baseUrl+"getuser?id="+username)-->
+                var getUrl = window.location;
+                var baseUrl = getUrl .protocol + "//" + getUrl.host + "/"
+                $('#user_a').attr('href', baseUrl+"user.html?id="+username)
+                $('#logobase').attr('href', baseUrl+"index.html?username="+username)
                 $('#user_a').text(username)
                 $('#user_a').show();
+                $('#login_a').hide();
              }
         }
     </script>
@@ -40,7 +44,7 @@
         <div class="ml4-container base-header-primary-container">
             <div class="base-header-logo-container">
                 <span class="base-header-logo-main">
-                    <a href="."><img alt="Sparrow RecSys Logo" height="40px" src="./images/halorecsyslogo.png"/></a>
+                    <a id="logobase" href="."><img alt="Halo RecSys Logo" height="35px" src="./images/halorecsyslogo.png"/></a>
                 </span>
             </div>
             <div class="base-header-search-container">

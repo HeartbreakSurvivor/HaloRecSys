@@ -36,7 +36,7 @@ public class SimilarUserService extends HttpServlet {
             String mode = request.getParameter("mode");
 
             //use different model to get similar users
-            List<User> users = DataLoader.getInstance().getSimilarUsers(Integer.parseInt(userId), Integer.parseInt(size), mode);
+            List<User> users = DataLoader.getInstance().getSimilarUsers(Integer.parseInt(userId.substring(4)), Integer.parseInt(size), mode);
 
             //convert movie list to json format and return
             ObjectMapper mapper = new ObjectMapper();

@@ -8,13 +8,13 @@ package com.halorecsys.dataloader;
  **/
 public class Rating {
     private int movieId;
-    private int userId;
+    private String userName;
     private double score;
     private long timestamp;
 
-    public Rating(int mid, int uid, double score, long ts) {
+    public Rating(int mid, String username, double score, long ts) {
         this.movieId = mid;
-        this.userId = uid;
+        this.userName = username;
         this.score = score;
         this.timestamp = ts;
     }
@@ -23,13 +23,7 @@ public class Rating {
 
     public void setMovieId(int movieId) { this.movieId = movieId; }
 
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
+    public String getUserName() { return this.userName; }
 
     public double getScore() { return score; }
 

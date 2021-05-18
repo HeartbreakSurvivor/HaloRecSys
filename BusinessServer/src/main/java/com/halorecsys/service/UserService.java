@@ -19,7 +19,7 @@ public class UserService extends HttpServlet {
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response) throws IOException {
         try {
-            System.out.println(UserService.class.getName() + "doGet...............");
+            System.out.println(UserService.class.getName() + "...doGet...");
 
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_OK);
@@ -27,18 +27,18 @@ public class UserService extends HttpServlet {
             response.setHeader("Access-Control-Allow-Origin", "*");
 
             //get user id via url parameter
-            String userId = request.getParameter("id");
+            String username = request.getParameter("id");
 
             //get user object from DataManager
-            User user = DataLoader.getInstance().getUserById(Integer.parseInt(userId));
+            User user = DataLoader.getInstance().getUserByName(username);
 
             //convert movie object to json format and return
             if (null != user) {
                 ObjectMapper mapper = new ObjectMapper();
                 String jsonUser = mapper.writeValueAsString(user);
                 response.getWriter().println(jsonUser);
-            }else{
-                response.getWriter().println("");
+            } else {
+                response.getWriter().println("找不到用户。");
             }
 
         } catch (Exception e) {

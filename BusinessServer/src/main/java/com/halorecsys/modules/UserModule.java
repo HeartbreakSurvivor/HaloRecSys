@@ -1,6 +1,7 @@
 package com.halorecsys.modules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.halorecsys.dataloader.DataLoader;
 import com.halorecsys.utils.Config;
 import com.halorecsys.utils.MongoDBClient;
 import com.mongodb.client.MongoCollection;
@@ -26,10 +27,10 @@ public class UserModule {
                 return false;
             }
             String pwd = docs.getString("password");
-            if (pwd != password) {
-                return false;
+            if (pwd.equals(password)) {
+                return true;
             }
-            return true;
+            return false;
         }
         return false;
     }
@@ -48,6 +49,7 @@ public class UserModule {
     public static boolean RegisterUser(String username, String password) {
         if (IsUserExist(username)) return false;
         userCollection.insertOne(new Document("username", username).append("password", password));
+        DataLoader.getInstance().setUserByName(username);
         return true;
     }
 

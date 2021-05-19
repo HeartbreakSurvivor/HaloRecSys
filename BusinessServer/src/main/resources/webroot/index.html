@@ -15,30 +15,44 @@
     <script src="./js/jquery-3.2.1.min.js"></script>
     <script src="./js/recsys.js?v=1.19"></script>
     <script>
-        var thisURL = document.URL;
-        var getval = thisURL.split('?')[1];
-        var username = getval.split("=")[1];
-        console.log(thisURL);
         function showUser(){
+            var thisURL = document.URL;
+            var getval = thisURL.split('?')[1];
+            var username = getval.split("=")[1];
+            console.log(thisURL);
             if (null == username) {
                 $('#login_a').show();
                 $('#user_a').hide();
-                $('#logobase').attr('href', ".")
             }
             else {
                 var getUrl = window.location;
                 var baseUrl = getUrl .protocol + "//" + getUrl.host + "/"
                 $('#user_a').attr('href', baseUrl+"user.html?id="+username)
-                $('#logobase').attr('href', baseUrl+"index.html?username="+username)
                 $('#user_a').text(username)
                 $('#user_a').show();
                 $('#login_a').hide();
              }
         }
+
+        function onLoad() {
+            var userName = localStorage.getItem("userName");
+            console.log(userName);
+            if (null != userName) {
+                var getUrl = window.location;
+                var baseUrl = getUrl .protocol + "//" + getUrl.host + "/"
+                $('#user_a').attr('href', baseUrl+"user.html?id="+userName)
+                $('#user_a').text(userName)
+                $('#user_a').show();
+                $('#login_a').hide();
+            } else {
+                $('#login_a').show();
+                $('#user_a').hide();
+            }
+        }
     </script>
 
 </head>
-<body id="root" onload="showUser()">
+<body id="root" onload="onLoad()">
 <div>
     <header class="base-compact-header">
         <div class="ml4-container base-header-primary-container">

@@ -201,6 +201,7 @@ function check_login()
 		success : function(data) {
 			console.log(data);
 			if (data.res == 'success') {
+				localStorage.setItem("userName", username)
 				window.location.href='index.html?username='+username;
 			}
 			else if ("failed" == data.res) {

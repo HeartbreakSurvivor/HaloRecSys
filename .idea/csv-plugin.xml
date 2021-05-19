@@ -31,6 +31,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/BusinessServer/src/main/java/com/halorecsys/service/SimilarUserService.java">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/BusinessServer/src/main/java/com/halorecsys/utils/Config.java">
           <value>
             <Attribute>
@@ -49,6 +56,13 @@
           <value>
             <Attribute>
               <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/BusinessServer/src/main/resources/webroot/user.html">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
             </Attribute>
           </value>
         </entry>

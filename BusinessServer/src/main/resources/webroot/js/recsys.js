@@ -190,7 +190,7 @@ function addRecForYou(pageId, containerId, userId, baseUrl){
                </div>'
     $(pageId).prepend(rowDiv);
 
-    $.getJSON(baseUrl + "getrecforyou?id="+userId+"&size=10&mode=lfm", function(result){
+    $.getJSON(baseUrl + "getrecforyou?username="+userId+"&size=10&mode=lfm", function(result){
                 $.each(result, function(i, movie){
                   appendMovie2Row(containerId, movie.title, movie.movieId, movie.releaseYear, movie.averageRating.toPrecision(2), movie.ratingNumber, movie.genres,baseUrl);
                 });
@@ -272,7 +272,7 @@ function addUserDetails(containerId, userId, baseUrl) {
     $.getJSON(baseUrl + "getuser?id="+userId, function(userObject) {
         console.log("get similar users");
         var similarUsers = "";
-        $.getJSON(baseUrl + "getsimilaruser?userId="+userId+"&size=10&mode=lfm", function(result){
+        $.getJSON(baseUrl + "getsimilaruser?userName="+userId+"&size=10&mode=lfm", function(result){
                if (null !== result) {
                     console.log("result.length: ", result.length);
                       $.each(result, function(i, user) {

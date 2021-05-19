@@ -23,7 +23,7 @@ case class Movie(mid:Int, name:String, genres:String)
 * 评分数据样例类
 * 	userId,movieId,rating,timestamp
 * */
-case class Rating(uid:Int, mid:Int, score:Double, timestamp:Int)
+case class Rating(uid:String, mid:Int, score:Double, timestamp:Int)
 
 /*
 * 定义MongoDB数据库相关配置信息样例类

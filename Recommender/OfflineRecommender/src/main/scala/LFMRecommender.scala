@@ -9,7 +9,13 @@ import org.jblas.DoubleMatrix
 * 基于评分数据的LFM，只需要Rating数据
 * 	userId,movieId,rating,timestamp
 * */
-case class MovieRating(uid:Int, mid:Int, score:Double, timestamp:Int)
+case class MovieRating(uid:String, mid:Int, score:Double, timestamp:Int)
+
+/*
+* 用户数据样例类
+* 	userId,password,id
+* */
+case class User(username:String, password:String, id:Int)
 
 /*
 * 定义MongoDB数据库相关配置信息样例类
@@ -31,6 +37,7 @@ case class SimUsers(uid: Int, sims: Seq[UserSimilarRec])
 
 object LFMRecommender {
 	//Mongo中保存的用户评分Rating表
+	val MONGODB_USER_COLLECTION = "Users"
 	val MONGODB_RATING_COLLECTION = "Ratings"
 
 	//LFM模型输出结果写入MongoDB
@@ -76,18 +83,49 @@ object LFMRecommender {
 		  .map( rating => (rating.uid, rating.mid, rating.score)) //去掉时间戳，转换成指定的格式
 		  .cache() //数据较大，先缓存在内存中，提高速度
 
-		// 从rating数据中=筛选出所有评过分的用户以及所有被评过分的电影，均需要去重
-		val userRDD = ratingRDD.map(_._1).distinct()
+		val userRDD = spark.read
+		  .option("uri", mongoConfig.uri)
+		  .option("collection", MONGODB_USER_COLLECTION)
+		  .format("com.mongodb.spark.sql") //对应的表名
+		  .load()
+		  .as[User] //转换成User格式
+		  .rdd
+		  .map( x => (x.username, x.id)) //去掉时间戳，转换成指定的格式
+		  .cache()
+
+		// 从rating数据中=筛选出所有评过分的用户以及所有被评过分的电影，均需要去重,
+		// 由于LFM算法的输入是Int类型，但是uid是String类型，所以还需要加一行序号，
+		//val userRDD = userRDD.map(_._1).distinct().zipWithIndex()
 		val movieRDD = ratingRDD.map(_._2).distinct()
 
+		val Userschemas= Seq("name", "uid")
+		val userDF = userRDD.toDF(Userschemas: _*)
+		userDF.printSchema()
+		userDF.show(100)
+
+		val Ratingschemas= Seq("name", "mid", "score")
+		val ratingDF = ratingRDD.toDF(Ratingschemas: _*)
+		ratingDF.printSchema()
+		ratingDF.show(100)
+
+		// 根据name将两张表进行内连接，主要是为name加上序号
+		val trainRDD = ratingDF.join(userDF, ratingDF("name") === userDF("name"), "inner").select(userDF("uid"), ratingDF("mid"), ratingDF("score"))
+		trainRDD.printSchema()
+		trainRDD.show(100, truncate = false)
+
+		// TODO:与ratingRDD进行聚合，得到每一个电影和用户唯一的编号，以便进行LFM算法计算
 		//训练LFM模型
-		// case class Rating @Since("0.8.0") (user: Int, product: Int,rating: Double) Spark.Mlib中定义的Rating样例类
-		val trainData = ratingRDD.map( x => Rating(x._1, x._2, x._3)) //把Rating数据转换成LFM模型需要的Rating类型
+		val trainData = trainRDD.rdd.map{
+			x => Rating(x.getAs[Int]("uid"), x.getAs[Int]("mid"), x.getAs[Double]("score"))
+		} //把Rating数据转换成LFM模型需要的Rating类型
+
+		//val trainData = ratingRDD.map( x => Rating(x._1, x._2, x._3)) //把Rating数据转换成LFM模型需要的Rating类型
 		val (rank, iter, lambda) = (200, 5, 0.1) //定义ALS模型训练的参数
 		val lfm = ALS.train(trainData, rank, iter, lambda)
 
+		val userRDD1 = userRDD.map( x => x._2.toInt)
 		//形成user-item的矩阵M，矩阵元素M[i][j]代表的含义是Useri 对 Moviej的评分
-		val userMovies = userRDD.cartesian(movieRDD) // 笛卡尔积，形成U x M 大小的矩阵，
+		val userMovies = userRDD1.cartesian(movieRDD) // 笛卡尔积，形成U x M 大小的矩阵，
 		//基于LFM模型，计算user对movie的评分
 		val predRatings = lfm.predict(userMovies) //这个predict函数接受一个元素(uid, mid)，这里传入了一个RDD，里面包含了很多元祖
 

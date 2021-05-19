@@ -29,6 +29,7 @@ public class DataLoader {
     // map Movies and users info to corresponding Id
     HashMap<Integer, Movie> movieMap;
     HashMap<String, User> userMap;
+    HashMap<Integer, String> userId2Name;
 
     // map all movies to specific categories
     HashMap<String, List<Integer>> genresMap;
@@ -54,6 +55,7 @@ public class DataLoader {
     private DataLoader() {
         this.movieMap = new HashMap<>();
         this.userMap = new HashMap<>();
+        this.userId2Name = new HashMap<>();
         this.genresMap = new HashMap<>();
 
         this.rateMostMovies = new ArrayList<>();
@@ -62,7 +64,6 @@ public class DataLoader {
         this.genresTopMovies = new HashMap<>();
 
         this.lfmRecMovies = new ArrayList<>();
-
         this.TFIDFRecMovies = new ArrayList<>();
         instance = this;
     }
@@ -133,45 +134,20 @@ public class DataLoader {
         System.out.println("Loading " + count + " movies completed. ");
         count = 0;
 
-        // load rating data
-        MongoCollection<Document> ratings = db.getCollection(ratingTable);
-        for (Document doc : ratings.find()) {
-            // parse each ratings data
-            int mid = doc.getInteger("mid");
-            int uid = doc.getInteger("uid");
-            Double score = doc.getDouble("score");
-            int timestamp = doc.getInteger("timestamp");
-
-            String username = "User"+uid;
-            Rating rating = new Rating(mid, username, score, timestamp);
-            // update current movie's rating list
-            Movie movie = this.movieMap.get(mid);
-            if (movie != null) {
-                movie.addRating(rating);
-            }
-            if (!this.userMap.containsKey(username)) {
-                User user = new User();
-                user.setUserName(username);
-                this.userMap.put(username, user);
-            }
-            this.userMap.get(username).addRating(rating);
-            if (score > 3.0) { //将评分大于3分的电影的类别设置为用户的喜爱类别
-                List<String> genres = movie.getGenres();
-                this.userMap.get(username).setPrefGenres(genres);
-            }
-            count++;
-        }
-        System.out.println("Loading " + count + " ratings data completed. ");
-        count = 0;
-
         //load user data
         MongoCollection<Document> users = db.getCollection(userTable);
         for (Document doc : users.find()) {
             // parse each ratings data
             String username = doc.getString("username");
+            int userId = doc.getInteger("id");
+
+            if (null != username && !this.userId2Name.containsKey(userId)) {
+                this.userId2Name.put(userId, username);
+            }
             if (null != username && !this.userMap.containsKey(username)) {
                 User user = new User();
                 user.setUserName(username);
+                user.setUserId(userId);
                 // 记录每个用户的兴趣爱好
                 BasicDBList prefGenres = (BasicDBList)doc.get("preGenres");
                 if (null != prefGenres) {
@@ -184,6 +160,36 @@ public class DataLoader {
                 this.userMap.put(username, user);
             }
         }
+
+        // load rating data
+        MongoCollection<Document> ratings = db.getCollection(ratingTable);
+        for (Document doc : ratings.find()) {
+            // parse each ratings data
+            int mid = doc.getInteger("mid");
+            String username = doc.getString("uid");
+            Double score = doc.getDouble("score");
+            int timestamp = doc.getInteger("timestamp");
+
+            Rating rating = new Rating(mid, username, score, timestamp);
+            // update current movie's rating list
+            Movie movie = this.movieMap.get(mid);
+            if (movie != null) {
+                movie.addRating(rating);
+            }
+//            if (!this.userMap.containsKey(username)) {
+//                User user = new User();
+//                user.setUserName(username);
+//                this.userMap.put(username, user);
+//            }
+            this.userMap.get(username).addRating(rating);
+            if (score > 3.0) { //将评分大于3分的电影的类别设置为用户的喜爱类别
+                List<String> genres = movie.getGenres();
+                this.userMap.get(username).setPrefGenres(genres);
+            }
+            count++;
+        }
+        System.out.println("Loading " + count + " ratings data completed. ");
+        count = 0;
 
         // load link data
         MongoCollection<Document> links = db.getCollection(linkTable);
@@ -335,11 +341,12 @@ public class DataLoader {
         return null;
     }
 
-    public List<User> getSimilarUsers(int userId, int size, String mode) {
+    public List<User> getSimilarUsers(String userName, int size, String mode) {
         if (null == mode) return null;
         switch (mode) {
             case "lfm": //根据协同过滤算法来计算电影相似度
                 MongoCollection<Document> similarMovieTable = MongoDBClient.getInstance().getDatabase(Config.DATABASE_NAME).getCollection(Config.LFM_USER_SIM_RECS);
+                int userId = DataLoader.getInstance().getUserByName(userName).getUserId();
                 Document docs = similarMovieTable.find(eq("uid", userId)).first();
                 if (null != docs) {
                     // find the most topN similar movies
@@ -347,8 +354,8 @@ public class DataLoader {
                     ArrayList<Document> recs = docs.get("sims", ArrayList.class);
                     int count = 0;
                     for (Document recDoc : recs) {
-                        String username = "User"+recDoc.getInteger("uid");
-                        userList.add(this.userMap.get(username));
+                        int uid = recDoc.getInteger("uid");
+                        userList.add(this.userMap.get(this.userId2Name.get(uid)));
                         count ++;
                         if (count == size) {
                             break;

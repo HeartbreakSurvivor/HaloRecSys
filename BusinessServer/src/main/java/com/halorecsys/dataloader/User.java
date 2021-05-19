@@ -39,17 +39,13 @@ public class User {
         this.emb = null;
     }
 
-    public int getUserId() {
-        return this.userName.hashCode();
-    }
+    public int getUserId() { return this.userId; }
     public void setUserId(int userId) {
         this.userId = userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-        this.userId = userName.hashCode();
-    }
+    public void setUserName(String userName) { this.userName = userName; }
+    public String getUserName() { return this.userName; }
 
     public List<Rating> getRatings() {
         return ratings;

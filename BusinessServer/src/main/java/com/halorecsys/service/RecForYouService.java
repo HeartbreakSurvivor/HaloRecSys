@@ -30,14 +30,15 @@ public class RecForYouService extends HttpServlet {
             response.setHeader("Access-Control-Allow-Origin", "*");
 
             //get user id via url parameter
-            String userId = request.getParameter("id");
+            String userName = request.getParameter("username");
             //number of returned movies
             String size = request.getParameter("size");
             //ranking algorithm
             String mode = request.getParameter("mode");
 
+            int userId = DataLoader.getInstance().getUserByName(userName).getUserId();
             //a simple method, just fetch all the movie in the genre
-            List<Movie> movies = DataLoader.getInstance().getUserRecList(Integer.parseInt(userId.substring(4)), Integer.parseInt(size), mode);
+            List<Movie> movies = DataLoader.getInstance().getUserRecList(userId, Integer.parseInt(size), mode);
 
             //convert movie list to json format and return
             ObjectMapper mapper = new ObjectMapper();

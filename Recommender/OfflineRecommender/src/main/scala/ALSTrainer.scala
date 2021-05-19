@@ -38,26 +38,25 @@ object ALSTrainer {
 
 		//加载数据
 		//从Mongodb中读取相关数据
-		val ratingRDD = spark.read
-		  .option("uri", mongoConfig.uri)
-		  .option("collection", MONGODB_RATING_COLLECTION)
-		  .format("com.mongodb.spark.sql") //对应的表名
-		  .load()
-		  .as[MovieRating] //转换成MovieRating格式
-		  .rdd
-		  .map( rating => Rating(rating.uid, rating.mid, rating.score)) //去掉时间戳，转换成指定的格式
-		  .cache() //数据较大，先缓存在内存中，提高速度
-
-		// 随机切分数据集，生成训练集和测试集
-		val splits = ratingRDD.randomSplit(Array(0.8, 0.2))
-		val trainRDD = splits(0)
-		val testRDD = splits(1)
-
-		//模型超参数选择，输出最优参数
-		adjustALSParam(trainRDD, testRDD)
-
-		spark.close()
-
+//		val ratingRDD = spark.read
+//		  .option("uri", mongoConfig.uri)
+//		  .option("collection", MONGODB_RATING_COLLECTION)
+//		  .format("com.mongodb.spark.sql") //对应的表名
+//		  .load()
+//		  .as[MovieRating] //转换成MovieRating格式
+//		  .rdd
+//		  .map( rating => Rating(rating.uid, rating.mid, rating.score)) //去掉时间戳，转换成指定的格式
+//		  .cache() //数据较大，先缓存在内存中，提高速度
+//
+//		// 随机切分数据集，生成训练集和测试集
+//		val splits = ratingRDD.randomSplit(Array(0.8, 0.2))
+//		val trainRDD = splits(0)
+//		val testRDD = splits(1)
+//
+//		//模型超参数选择，输出最优参数
+//		adjustALSParam(trainRDD, testRDD)
+//
+//		spark.close()
 	}
 
 	def adjustALSParam(trainData: RDD[Rating], testData: RDD[Rating]): Unit ={

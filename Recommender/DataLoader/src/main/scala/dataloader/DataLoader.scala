@@ -25,7 +25,7 @@ case class Movie(mid:Int, name:String, genres:String)
 * 评分数据样例类
 * 	userId,movieId,rating,timestamp
 * */
-case class Rating(uid:Int, mid:Int, score:Double, timestamp:Int)
+case class Rating(uid:String, mid:Int, score:Double, timestamp:Int)
 
 /*
 *  影片链接数据样例类
@@ -37,13 +37,13 @@ case class Link(mid:Int, imdbId:String, tmdbId:String)
 * 标签数据样例类
 * 	userId,movieId,tag,timestamp
 * */
-case class Tag(uid:Int, mid:Int, tag:String, timestamp:Int)
+case class Tag(uid:String, mid:Int, tag:String, timestamp:Int)
 
 /*
 * 用户数据样例类
-* 	userId,password
+* 	userId,password,id
 * */
-case class User(username:String, password:String)
+case class User(username:String, password:String, id:Int)
 
 /*
 * 定义MongoDB数据库相关配置信息样例类
@@ -126,7 +126,8 @@ object DataLoader {
 		val ratingDF = ratingRDD.filter(_.split(",").length == 4).map( // 筛选出不符合格式的数据
 			item => {
 				val attr = item.split(",")
-				Rating(attr(0).toInt, attr(1).toInt, attr(2).toDouble, attr(3).toInt)
+				// 这里给所有用户前面都加上一个字符串"User"
+				Rating("User".concat(attr(0).trim), attr(1).toInt, attr(2).toDouble, attr(3).toInt)
 			}
 		).toDF()
 
@@ -137,11 +138,12 @@ object DataLoader {
 				(attr(0), "123456")
 			}
 		  )
-		  .distinct() // 去重
+		  .distinct() // 去重 + 编号
+		  .zipWithIndex()
 		  .map(
 			item => {
-				val username = "User".concat(item._1)
-				User(username, item._2)  // 改名为 "Userxxx"
+				val username = "User".concat(item._1._1)
+				User(username, item._1._2, item._2.toInt)  // 改名为 "Userxxx"
 			}
 		).toDF()
 
@@ -170,7 +172,7 @@ object DataLoader {
 		  .map(
 			item => {
 				val attr = item.split(",")
-				Tag(attr(0).toInt, attr(1).toInt, attr(2).trim, attr(3).toInt)
+				Tag(attr(0).trim, attr(1).toInt, attr(2).trim, attr(3).toInt)
 			}
 		).toDF()
 

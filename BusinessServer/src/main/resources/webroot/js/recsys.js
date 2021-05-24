@@ -1,5 +1,4 @@
 
-
  function appendMovie2Row(rowId, movieName, movieId, year, rating, rateNumber, genres, baseUrl) {
 
     var genresStr = "";

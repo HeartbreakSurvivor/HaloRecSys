@@ -202,7 +202,7 @@ function check_login()
 			console.log(data);
 			if (data.res == 'success') {
 				localStorage.setItem("userName", username)
-				window.location.href='index.html?username='+username;
+				window.location.href='index.html';
 			}
 			else if ("failed" == data.res) {
 				$("#login_form").removeClass('shake_effect');
@@ -237,8 +237,8 @@ function check_register(){
 		success : function(data) {
 			console.log(data);
 			if (data.res == 'success') {
-<!--				window.location.href='index.html?username='+username;-->
-				console.log("ready to jump...");
+				console.log("ready to jump to movie genres page");
+				window.location.href='profile.html?username='+username;
 			}
 			else if ("failed" == data.res) {
 				console.log("register failed");

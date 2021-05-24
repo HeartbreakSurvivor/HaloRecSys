@@ -2,7 +2,6 @@
 <html class="no-js" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <!--<base href="/">-->
     <base href="."/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
     <title>Home | Sparrow RecSys</title>
@@ -17,15 +16,29 @@
     <script>
         function onLoad() {
             var userName = localStorage.getItem("userName");
-            console.log(userName);
+            console.log("storage username: ", userName);
+            var windowLocation = window.location;
+            var userId = getQueryString("id",windowLocation);
+            console.log("Url userId: ", userId);
+
             if (null != userName) {
-                var getUrl = window.location;
-                var baseUrl = getUrl .protocol + "//" + getUrl.host + "/"
-                $('#user_a').attr('href', baseUrl+"user.html?id="+userName)
-                $('#user_a').text(userName)
-                $('#user_a').show();
+                if (userName == userId) { // log out
+                    $('#user_a').hide();
+                    $('#login_a').hide();
+                    $('#logout_a').show();
+                } else {
+                    var getUrl = window.location;
+                    var baseUrl = getUrl .protocol + "//" + getUrl.host + "/"
+                    $('#user_a').attr('href', baseUrl+"user.html?id="+userName)
+                    $('#user_a').text(userName)
+                    $('#user_a').show();
+                    $('#login_a').hide();
+                    $('#logout_a').hide();
+                }
             } else {
+                $('#login_a').show();
                 $('#user_a').hide();
+                $('#logout_a').hide();
             }
         }
     </script>
@@ -69,6 +82,8 @@
             <div id ="login_form" class="base-header-logo-container" style="float:right;display:line-block">
                 <span class="base-header-logo-main">
                     <a id="user_a" hidden href="./users.html"></a>
+                    <a id="login_a" hidden href="./login.html">Login</a>
+                    <a id="logout_a" hidden href="javascript:void(0);" onclick="logout()">LogOut</a>
                 </span>
             </div>
         </div>
@@ -138,6 +153,13 @@
 </body>
 
 <script type="text/javascript">
+function logout() {
+    console.log("logout");
+    window.localStorage.clear();
+    $('#login_a').show();
+    $('#user_a').hide();
+    $('#logout_a').hide();
+}
 
 function getQueryString(name, windowLocation) {
     var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');

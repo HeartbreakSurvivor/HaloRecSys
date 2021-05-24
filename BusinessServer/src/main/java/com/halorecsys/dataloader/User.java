@@ -62,8 +62,9 @@ public class User {
                 this.prefGenres.add(g);
             }
         }
-
     }
+
+    public List<String> getPrefGenres() {return this.prefGenres;}
 
     public void addRating(Rating rating) {
         this.ratings.add(rating);

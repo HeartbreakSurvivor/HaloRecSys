@@ -28,18 +28,30 @@ public class RegisterService extends HttpServlet {
             response.setHeader("Access-Control-Allow-Origin", "*");
 
             String username = request.getParameter("username");
-            String password = request.getParameter("password");
-            System.out.println("username: "+ username + " password: " + password);
+            System.out.println("username: " + username);
 
-            StringBuilder msg = new StringBuilder("");
+            String password = request.getParameter("password");
+            String genres = request.getParameter("genre");
+
             PrintWriter out = response.getWriter();
-           if (UserModule.RegisterUser(username, password)) {
-                System.out.println("注册成功!");
-                msg.append("{\"res\":\"success\"}");
-            } else {
-                System.out.println("用户名已存在!");
-                msg.append("{\"res\":\"failed\",\"msg\":\"用户名已存在!\"}");
+            StringBuilder msg = new StringBuilder("");
+
+            if (null != password) {
+                if (UserModule.RegisterUser(username, password)) {
+                    System.out.println("注册成功!");
+                    msg.append("{\"res\":\"success\"}");
+                } else {
+                    System.out.println("用户名已存在!");
+                    msg.append("{\"res\":\"failed\",\"msg\":\"用户名已存在!\"}");
+                }
             }
+            if (null != genres) {
+                System.out.println("genres: " + genres);
+                String[] genresBuf = genres.split(",");
+                UserModule.SetUserPres(username, genresBuf);
+                msg.append("{\"res\":\"success\"}");
+            }
+
             out.println(new String(msg));
             out.flush();
             out.close();

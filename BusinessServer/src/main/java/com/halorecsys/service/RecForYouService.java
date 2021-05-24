@@ -36,9 +36,8 @@ public class RecForYouService extends HttpServlet {
             //ranking algorithm
             String mode = request.getParameter("mode");
 
-            int userId = DataLoader.getInstance().getUserByName(userName).getUserId();
             //a simple method, just fetch all the movie in the genre
-            List<Movie> movies = DataLoader.getInstance().getUserRecList(userId, Integer.parseInt(size), mode);
+            List<Movie> movies = DataLoader.getInstance().getUserRecList(userName, Integer.parseInt(size), mode);
 
             //convert movie list to json format and return
             ObjectMapper mapper = new ObjectMapper();

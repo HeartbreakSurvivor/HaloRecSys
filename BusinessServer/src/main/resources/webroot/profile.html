@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Profile | Sparrow RecSys</title>
+    <link rel="shortcut icon" href="./resources/favicon.ico">
+    <link href="./css/style.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="./layui/css/layui.css"/>
+    <script src="./js/jquery-3.2.1.min.js"></script>
+    <script src="./js/recsys.js?v=1.25"></script>
+</head>
+<body>
+<header class="base-compact-header">
+    <div class="ml4-container base-header-primary-container">
+        <div class="base-header-logo-container">
+                <span class="base-header-logo-main">
+                    <a href="."><img alt="Halo RecSys Logo" height="35px" src="./images/halorecsyslogo.png"/></a>
+                </span>
+        </div>
+    </div>
+</header>
+<div class="base-compact-header-spacer"></div>
+<div class="ml4-container" style="min-height: 920px;">
+    <div id="main-container">
+        <div class="frontpage" id="userProfile">
+            <div class="frontpage-section-top">
+                <div class="row">
+                    <h2 align="center"> 请选择喜爱电影类别 </h2>
+                    <br>
+                    <form class="layui-form" align="center"> <!-- 提示：如果你不想用form，你可以换成div等任何一个普通元素 -->
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <input type="checkbox" name="genre" title="Film-Noir" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Action" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Adventure" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Horror" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Romance" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="War" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Western" lay-skin="primary">
+                            <br><br>
+                            <input type="checkbox" name="genre" title="Documentary" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Sci-Fi" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Drama" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Thriller" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Crime" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Fantasy" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Animation" lay-skin="primary">
+                            <br><br>
+                            <input type="checkbox" name="genre" title="IMAX" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Comedy" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Mystery" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Children" lay-skin="primary">
+                            <input type="checkbox" name="genre" title="Musical" lay-skin="primary">
+                        </div>
+                    </div>
+                    <div class="layui-btn-container" align="center">
+                        <button id="confirm" style="background-color:#55AF6F" type="button" class="layui-btn layui-btn-radius layui-btn-warm" align="center">确定</button>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="./layui/layui.js"></script>
+<script>
+console.log("profile page...");
+
+$(document).on('click',"#confirm",function(){
+    var thisURL = document.URL;
+    var getval = thisURL.split('?')[1];
+    var username = getval.split("=")[1];
+    console.log("Confirm...");
+    console.log(username);
+
+    var id = document.getElementsByName('genre');
+    var genres = new Array();
+    for(var i = 0; i < id.length; i++){
+        if(id[i].checked) {
+            genres.push(id[i].title);
+        }
+    }
+    var fav = genres.join()
+    console.log(fav);
+
+    <!-- storage username -->
+    localStorage.setItem("userName", username)
+
+	var getUrl = window.location;
+	var baseUrl = getUrl .protocol + "//" + getUrl.host + "/"
+	var url = baseUrl + "register?username="+username+"&genre="+fav;
+	console.log(url);
+    $.ajax({
+		type : "POST",
+		async : false,
+		url : url,
+		dataType: "json",
+		timeout : 1000,    //超时1s
+		success : function(data) {
+			console.log(data);
+			if (data.res == 'success') {
+				console.log("jump to index page");
+				window.location.href='index.html';
+			}
+			else if ("failed" == data.res) {
+				alert(data.msg);
+			}
+		},
+		error : function(errorMsg) {
+			alert(errorMsg)
+		}
+	});
+ });
+</script>
+</body>
+</html>

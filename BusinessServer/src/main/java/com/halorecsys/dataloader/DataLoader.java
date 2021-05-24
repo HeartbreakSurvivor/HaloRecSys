@@ -131,6 +131,8 @@ public class DataLoader {
             count++;
             this.movieMap.put(mid, m);
         }
+        System.out.println("Total movie genres: ");
+        System.out.println(this.genresMap.keySet());
         System.out.println("Loading " + count + " movies completed. ");
         count = 0;
 
@@ -149,7 +151,7 @@ public class DataLoader {
                 user.setUserName(username);
                 user.setUserId(userId);
                 // 记录每个用户的兴趣爱好
-                BasicDBList prefGenres = (BasicDBList)doc.get("preGenres");
+                List<String> prefGenres = (List<String>)doc.get("preGenres");
                 if (null != prefGenres) {
                     List<String> genres = new ArrayList<String>();
                     for (Object g : prefGenres) {
@@ -309,8 +311,32 @@ public class DataLoader {
         return movies;
     }
 
-    public List<Movie> getUserRecList(int userId, int size, String mode) {
+    private List<Movie> coldStartRecList(String username, int userId, int size) {
+        // 对于初次注册的用户，根据其选择的喜爱的电影类别，取TopN，然后随机选出size个作为推荐结果
+        List<Movie> res = new ArrayList();
+        HashSet<Integer> tmp = new HashSet();
+        for (String g : this.userMap.get(username).getPrefGenres()) {
+            List<Integer> movies = this.genresTopMovies.get(g);
+            if (movies != null) {
+                for (int mIdx : movies) {
+                    tmp.add(mIdx);
+                }
+            }
+        }
+
+        Iterator it = tmp.iterator();
+        int count = 0;
+        while(it.hasNext() && count < size){
+            int mIdx = (Integer) it.next();
+            res.add(this.movieMap.get(mIdx));
+            count++;
+        }
+        return res;
+    }
+
+    public List<Movie> getUserRecList(String userName, int size, String mode) {
         if (null == mode) return null;
+        int userId = DataLoader.getInstance().getUserByName(userName).getUserId();
         switch (mode) {
             case "lfm": // 通过LFM协同过滤算法来计算用户电影推荐列表
                 MongoCollection<Document> similarMovieTable = MongoDBClient.getInstance().getDatabase(Config.DATABASE_NAME).getCollection(Config.LFM_USER_RECS);
@@ -331,8 +357,9 @@ public class DataLoader {
                         res.add(this.movieMap.get(t));
                     }
                     return res;
+                } else {
+                    return coldStartRecList(userName, userId, size);
                 }
-                break;
             case "emb": // 通过embedding向量来计算用户电影推荐列表
                 break;
             default:
@@ -415,14 +442,13 @@ public class DataLoader {
     }
 
     //get user object by user id
-    public User getUserByName(String userName){
-        return this.userMap.get(userName);
-    }
+    public User getUserByName(String userName){ return this.userMap.get(userName); }
 
     //add a new user object by user id
-    public void setUserByName(String username){
+    public void setUser(String username, int userId){
         User user = new User();
         user.setUserName(username);
+        user.setUserId(userId);
         System.out.println(username);
         this.userMap.put(username, user);
     }

@@ -10,9 +10,9 @@ public class Rating {
     private int movieId;
     private String userName;
     private double score;
-    private long timestamp;
+    private int timestamp;
 
-    public Rating(int mid, String username, double score, long ts) {
+    public Rating(String username, int mid, double score, int ts) {
         this.movieId = mid;
         this.userName = username;
         this.score = score;
@@ -31,11 +31,9 @@ public class Rating {
         this.score = score;
     }
 
-    public long getTimestamp() {
-        return timestamp;
-    }
+    public int getTimestamp() { return timestamp; }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(int timestamp) {
         this.timestamp = timestamp;
     }
 }

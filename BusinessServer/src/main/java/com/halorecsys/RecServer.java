@@ -82,6 +82,7 @@ public class RecServer {
         context.addServlet(new ServletHolder(new SimilarUserService()), "/getsimilaruser");
         context.addServlet(new ServletHolder(new RecommendationService()), "/getrecommendation");
         context.addServlet(new ServletHolder(new RecForYouService()), "/getrecforyou");
+        context.addServlet(new ServletHolder(new RatingService()), "/rating");
 
         server.setHandler(context);
         System.out.println("Halo recommendation system has started");

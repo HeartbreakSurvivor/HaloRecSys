@@ -172,7 +172,7 @@ public class DataLoader {
             Double score = doc.getDouble("score");
             int timestamp = doc.getInteger("timestamp");
 
-            Rating rating = new Rating(mid, username, score, timestamp);
+            Rating rating = new Rating(username, mid, score, timestamp);
             // update current movie's rating list
             Movie movie = this.movieMap.get(mid);
             if (movie != null) {

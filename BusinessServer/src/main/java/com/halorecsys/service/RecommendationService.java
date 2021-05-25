@@ -23,7 +23,7 @@ public class RecommendationService extends HttpServlet {
             ServletException, IOException {
         try {
             System.out.println(RecommendationService.class.getName() + " doGet() " );
-            System.out.println("request url: " + request.getRequestURI());
+            //System.out.println("request url: " + request.getRequestURI());
 
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_OK);
@@ -36,7 +36,7 @@ public class RecommendationService extends HttpServlet {
             String size = request.getParameter("size");
             String sortby = request.getParameter("sortby");
 
-            System.out.println("type: " + type + " genre: " + genre + " size: " + size + " sortby: " + sortby);
+            //System.out.println("type: " + type + " genre: " + genre + " size: " + size + " sortby: " + sortby);
             List<Movie> movies = DataLoader.getInstance().getMoviesByType(Integer.parseInt(type), genre, Integer.parseInt(size), sortby);
 
             //convert movie list to json format and return

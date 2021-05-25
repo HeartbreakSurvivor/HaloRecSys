@@ -212,7 +212,7 @@ function addMovieDetails(containerId, movieId, baseUrl) {
 
         var ratingUsers = "";
         $.each(movieObject.topRatings, function(i, rating){
-            console.log(rating);
+            //console.log(rating);
             ratingUsers += ('<span><a href="'+baseUrl+'user.html?id='+rating.rating.userName+'"><b>'+rating.rating.userName+'</b></a>');
             if(i < movieObject.topRatings.length-1){
                 ratingUsers+=", </span>";
@@ -220,7 +220,7 @@ function addMovieDetails(containerId, movieId, baseUrl) {
                 ratingUsers+="</span>";
             }
         });
-        console.log("ratingUsers: ", ratingUsers);
+        //console.log("ratingUsers: ", ratingUsers);
 
         var movieDetails = '<div class="row movie-details-header movie-details-block">\
                                         <div class="col-md-2 header-backdrop">\
@@ -237,6 +237,10 @@ function addMovieDetails(containerId, movieId, baseUrl) {
                                                         <div class="movie-details-heading">Links</div>\
                                                         <a target="_blank" href="http://www.imdb.com/title/tt'+movieObject.imdbId+'">imdb</a>,\
                                                         <span><a target="_blank" href="http://www.themoviedb.org/movie/'+movieObject.tmdbId+'">tmdb</a></span>\
+                                                    </div>\
+                                                    <div id="rate" class="heading-and-data">\
+                                                        <div class="movie-details-heading">User Rating</div>\
+                                                        <div id="user_rating" class="my-rating"></div>\
                                                     </div>\
                                                 </div>\
                                                 <div class="col-md-3">\
@@ -264,6 +268,55 @@ function addMovieDetails(containerId, movieId, baseUrl) {
                                         </div>\
                                     </div>'
         $("#"+containerId).prepend(movieDetails);
+
+        var userName = localStorage.getItem("userName");
+        if (null != userName) {
+            $('#rate').show();
+            // set configuration for rating star
+            $('#user_rating').starRating({
+              initialRating: 0,
+              strokeColor: '#FFA500',
+              strokeWidth: 10,
+              starSize: 25,
+              ratedColors: '#888888',
+              callback: function(currentRating, $el){
+                    //alert('rated ' + currentRating);
+                    console.log('DOM element ', $el);
+
+                    var userName = localStorage.getItem("userName");
+                    console.log(userName);
+                    var date = new Date();
+                    var timestamp = Math.round(date.getTime()/1000);
+
+                    console.log('user | movie | score | timestamp:');
+                    console.log(userName, movieId, currentRating, timestamp);
+
+                    var getUrl = window.location;
+                    var baseUrl = getUrl.protocol + "//" + getUrl.host + "/"
+                    var url = baseUrl + "rating?username="+userName+"&movieId="+movieId+"&rating="+currentRating+"&timestamp="+timestamp
+                    console.log(url)
+
+                    $.ajax({
+                        type : "POST",
+                        async : false,
+                        url : url,
+                        dataType: "json",
+                        timeout : 1000,
+                        success : function(data) {
+                            console.log(data);
+                            //alert(data.msg);
+                        },
+                        error : function(errorMsg) {
+                            alert(errorMsg)
+                        }
+                    });
+              }
+            });
+        } else {
+            console.log("user not login");
+            $('#rate').hide();
+        }
+
     });
 };
 

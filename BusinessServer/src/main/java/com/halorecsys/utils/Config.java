@@ -39,6 +39,8 @@ public class Config {
     public static final String LFM_USER_SIM_RECS = "LFM_USER_SIM_RECS";
 
     /*********** 实时推荐列表 ************/
+    public static String MOVIE_RATING_PREFIX = "MOVIE_RATING_PREFIX";
+    public static int REDIS_MOVIE_RATING_QUEUE_SIZE = 40;
     public static final String MONGODB_STREAM_RECS_COLLECTION = "StreamingRecs";
 
 }

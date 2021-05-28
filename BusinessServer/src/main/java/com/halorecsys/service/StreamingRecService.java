@@ -8,23 +8,21 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @program: HaloRecSys
- * @description: recommend different movies to front
+ * @description: real time streaming movie recommendation
  * @author: HaloZhang
- * @create: 2021-05-09 15:46
+ * @create: 2021-05-28 14:16
  **/
-public class RecommendationService extends HttpServlet {
+public class StreamingRecService extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws
             ServletException, IOException {
         try {
-            System.out.println(RecommendationService.class.getName() + " doGet() " );
-            //System.out.println("request url: " + request.getRequestURI());
+            System.out.println(StreamingRecService.class.getName() + " doGet() " );
 
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_OK);
@@ -32,12 +30,11 @@ public class RecommendationService extends HttpServlet {
             response.setHeader("Access-Control-Allow-Origin", "*");
 
             //get parameters from query
-            String type = request.getParameter("type");
-            String genre = request.getParameter("genre");
+            String userName = request.getParameter("username");
             String size = request.getParameter("size");
             String sortby = request.getParameter("sortby");
 
-            List<Movie> movies = DataLoader.getInstance().getMoviesByType(Integer.parseInt(type), genre, Integer.parseInt(size), sortby);
+            List<Movie> movies = DataLoader.getInstance().getStreamingRecList(userName, sortby, Integer.parseInt(size));
 
             //convert movie list to json format and return
             ObjectMapper mapper = new ObjectMapper();
@@ -49,3 +46,4 @@ public class RecommendationService extends HttpServlet {
         }
     }
 }
+

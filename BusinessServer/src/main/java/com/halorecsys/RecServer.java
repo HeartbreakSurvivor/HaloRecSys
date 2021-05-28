@@ -54,7 +54,6 @@ public class RecServer {
                 Config.MONGODB_RATING_COLLECTION, Config.MONGODB_LINK_COLLECTION, Config.MONGODB_USER_COLLECTION);
         DataLoader.getInstance().LoadStatisticsRecsData(Config.DATABASE_NAME, Config.RATE_MOST_MOVIES,
                 Config.RATE_MOST_RECENTLY_MOVIES, Config.AVERAGE_RATINGS_MOVIES, Config.GENRES_TOP_N_MOVIES);
-        //DataLoader.getInstance().LoadLFMRecsData(Config.LFM_MOVIE_RECS, Config.LFM_USER_RECS, Config.LFM_USER_SIM_RECS);
 
         // create server context
         ServletContextHandler context = new ServletContextHandler();
@@ -83,6 +82,7 @@ public class RecServer {
         context.addServlet(new ServletHolder(new RecommendationService()), "/getrecommendation");
         context.addServlet(new ServletHolder(new RecForYouService()), "/getrecforyou");
         context.addServlet(new ServletHolder(new RatingService()), "/rating");
+        context.addServlet(new ServletHolder(new StreamingRecService()), "/getstreamingrec");
 
         server.setHandler(context);
         System.out.println("Halo recommendation system has started");

@@ -253,10 +253,6 @@ public class DataLoader {
         }
     }
 
-    public void LoadLFMRecsData(String lfmUserMovieRecs, String lfmRelatedMovies, String lfmSimUsers) {
-
-    }
-
     public List<Movie> getMoviesByType(int type, String genre, int size, String sortBy) {
         List<Movie> movies = new ArrayList<>();
         switch (type) {
@@ -299,7 +295,6 @@ public class DataLoader {
                         break;
                     default: return null;
                 }
-
                 break;
             default:
                 return null;
@@ -309,6 +304,45 @@ public class DataLoader {
             return movies.subList(0, size);
         }
         return movies;
+    }
+
+    public List<Movie> getStreamingRecList(String username, String sortBy, int size) {
+        List<Movie> res = new ArrayList();
+
+        MongoCollection<Document> streamingCollection = MongoDBClient.getInstance().getDatabase(Config.DATABASE_NAME).getCollection(Config.MONGODB_STREAM_RECS_COLLECTION);
+        Document docs = streamingCollection.find(eq("uid", username)).first();
+        if (null != docs) {
+            List<Integer> movielist = new ArrayList<>();
+            ArrayList<Document> recs = docs.get("recs", ArrayList.class);
+            int count = 0;
+            for (Document doc : recs) {
+                movielist.add(doc.getInteger("mid"));
+                count ++;
+                if (count == size) {
+                    break;
+                }
+            }
+            for (Integer t : movielist) {
+                res.add(this.movieMap.get(t));
+            }
+        } else { // if user has logged in, but there is no streaming recs for him/her, then return the most rated movies list.
+            for (int mid : this.rateMostMovies)
+                res.add(this.movieMap.get(mid));
+        }
+        // 去重
+        User user = this.userMap.get(username);
+        for (Rating rating : user.getRatings()) {
+            Movie m = this.movieMap.get(rating.getMovieId());
+            if (res.contains(m)) {
+                res.remove(m);
+            }
+        }
+        switch (sortBy) {
+            case "rating": res.sort((m1, m2) -> Double.compare(m2.getAverageRating(), m1.getAverageRating()));break;
+            case "releaseYear": res.sort((m1, m2) -> Integer.compare(m2.getReleaseYear(), m1.getReleaseYear()));break;
+            default: break;
+        }
+        return res;
     }
 
     private List<Movie> coldStartRecList(String username, int userId, int size) {

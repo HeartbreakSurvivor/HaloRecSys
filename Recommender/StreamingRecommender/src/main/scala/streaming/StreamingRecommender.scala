@@ -32,7 +32,9 @@ object ConnHelper extends Serializable {
 
 object StreamingRecommender {
 	val MAX_USER_RATINGS_NUM = 20 //获取用户最近的评分个数
-	val MAX_SIM_MOVIES_NUM = 20
+	val MAX_SIM_MOVIES_NUM = 10
+	val SIM_THRESHOLD = 0.7 // 与当前电影的相似度阈值
+	val RATING_THRESHOLD = 3 // 用户对电影的评分阈值
 	val MONGODB_STREAM_RECS_COLLECTION = "StreamingRecs" // 实时推荐列表
 	val MONGODB_RATING_COLLECTION = "Rating"
 	val MONGODB_MOVIE_RECS_COLLECTION = "LFM_MOVIE_RECS" //电影相似度矩阵
@@ -56,7 +58,7 @@ object StreamingRecommender {
 		// 拿到streaming context
 		val sc = spark.sparkContext
 		//val ssc = new StreamingContext(sparkConf, Seconds(1))
-		val ssc = new StreamingContext(sc, Seconds(2))    // batch duration
+		val ssc = new StreamingContext(sc, Seconds(2))    // batch duration, 时间处理间隔为2秒
 
 		import spark.implicits._
 
@@ -96,7 +98,7 @@ object StreamingRecommender {
 		val ratingStream = kafkaStream.map{
 			msg =>
 				val attr = msg.value().split("\\|")
-				( attr(0).toInt, attr(1).toInt, attr(2).toDouble, attr(3).toInt )
+				( attr(0), attr(1).toInt, attr(2).toDouble, attr(3).toInt )
 		}
 
 		// 这个ratingStream是一个时间窗口之类的一组数据，这里的时间设置的是2秒，即2秒内产生的所有数据
@@ -107,7 +109,9 @@ object StreamingRecommender {
 					// 1. 从redis中获取当前用户最近的K次评分，保存成数组，这里相当于电商中获取用的历史数据，不要取太久远的，参考价值不大
 					val userRecentlyRatings = getUserRecentlyRating( MAX_USER_RATINGS_NUM, uid, ConnHelper.jedis )
 
-					// 2. 从相似度矩阵中取出当前电影最相似的N个电影，作为备选列表，Array[mid]
+					// 2. 从相似度矩阵中取出与当前用户评分电影最相似的N个电影，作为备选列表，Array[mid]
+					// TODO: 如果用户对当前电影的评分很低，那么找到与当前电影最相似的N个电影作为候选列表本身就不太合理。
+					// 改进措施还没想好
 					val candidateMovies = getTopSimMovies( MAX_SIM_MOVIES_NUM, mid, uid, simMovieMatrixBroadCast.value )
 
 					// 3. 对每个备选电影，计算推荐优先级，得到当前用户的实时推荐列表，Array[(mid, score)]
@@ -115,6 +119,7 @@ object StreamingRecommender {
 
 					// 4. 把推荐数据保存到mongodb
 					saveDataToMongoDB( uid, streamRecs )
+					println("streaming processing has finished....")
 				}
 			}
 		}
@@ -129,7 +134,7 @@ object StreamingRecommender {
 	// redis操作返回的是java类，为了用map操作需要引入转换类
 	import scala.collection.JavaConversions._
 
-	def getUserRecentlyRating(num: Int, uid: Int, jedis: Jedis): Array[(Int, Double)] = {
+	def getUserRecentlyRating(num: Int, uid: String, jedis: Jedis): Array[(Int, Double)] = {
 		// 从redis读取数据，用户评分数据保存在 uid:UID 为key的队列里，value是 MID:SCORE
 		// redis 中的数据是前端捕获到用户评分之后写入的，数据格式为：
 		// key: uid:id  value: mid:score
@@ -137,20 +142,20 @@ object StreamingRecommender {
 		  .map{
 			  item => // 具体每个评分又是以冒号分隔的两个值
 				  val attr = item.split("\\:")
-				  ( attr(0).trim.toInt, attr(1).trim.toDouble )
+				  ( attr(0).trim().toInt, attr(1).trim.toDouble )
 		  }
 		  .toArray
 	}
 
 	/**
-	 * 获取跟当前电影做相似的num个电影，作为备选电影
+	 * 获取跟当前电影最相似的num个电影，去重之后作为备选电影
 	 * @param num       相似电影的数量
 	 * @param mid       当前电影ID
-	 * @param uid       当前评分用户ID
+	 * @param uid       当前评分用户名
 	 * @param simMovies 相似度矩阵
 	 * @return          过滤之后的备选电影列表
 	 */
-	def getTopSimMovies(num: Int, mid: Int, uid: Int, simMovies: scala.collection.Map[Int, scala.collection.immutable.Map[Int, Double]])
+	def getTopSimMovies(num: Int, mid: Int, uid: String, simMovies: scala.collection.Map[Int, scala.collection.immutable.Map[Int, Double]])
 					   (implicit mongoConfig: MongoConfig): Array[Int] ={
 		// 1. 从相似度矩阵中拿到所有相似的电影
 		val allSimMovies = simMovies(mid).toArray
@@ -175,7 +180,7 @@ object StreamingRecommender {
 						   simMovies: scala.collection.Map[Int, scala.collection.immutable.Map[Int, Double]]): Array[(Int, Double)] ={
 		// 定义一个ArrayBuffer，用于保存每一个备选电影的基础得分
 		val scores = scala.collection.mutable.ArrayBuffer[(Int, Double)]()
-		// 定义一个HashMap，保存每一个备选电影的增强减弱因子
+		// 定义一个HashMap，保存每一个备选电影的增强减弱因子,格式为 (mid: cnt), Cnt代表个数
 		val increMap = scala.collection.mutable.HashMap[Int, Int]()
 		val decreMap = scala.collection.mutable.HashMap[Int, Int]()
 
@@ -183,10 +188,10 @@ object StreamingRecommender {
 			// 拿到备选电影和最近评分电影的相似度
 			val simScore = getMoviesSimScore( candidateMovie, userRecentlyRating._1, simMovies )
 
-			if(simScore > 0.7){
+			if(simScore > SIM_THRESHOLD){
 				// 计算备选电影的基础推荐得分
 				scores += ( (candidateMovie, simScore * userRecentlyRating._2) )
-				if( userRecentlyRating._2 > 3 ) {
+				if( userRecentlyRating._2 > RATING_THRESHOLD ) {
 					// 增强因子，即用户评分大于3的电影个数先保存起来
 					increMap(candidateMovie) = increMap.getOrDefault(candidateMovie, 0) + 1
 				} else {
@@ -221,7 +226,7 @@ object StreamingRecommender {
 		math.log(m)/ math.log(N)
 	}
 
-	def saveDataToMongoDB(uid: Int, streamRecs: Array[(Int, Double)])(implicit mongoConfig: MongoConfig): Unit ={
+	def saveDataToMongoDB(uid: String, streamRecs: Array[(Int, Double)])(implicit mongoConfig: MongoConfig): Unit ={
 		// 定义到StreamRecs表的连接
 		val streamRecsCollection = ConnHelper.mongoClient(mongoConfig.db)(MONGODB_STREAM_RECS_COLLECTION)
 

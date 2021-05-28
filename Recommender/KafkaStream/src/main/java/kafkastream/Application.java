@@ -34,6 +34,10 @@ public class Application {
         TopologyBuilder builder = new TopologyBuilder();
 
         // 定义流处理的拓扑结构
+        // 数据流向为 source ----> processor ----> sink
+        //  topic   log   ------------------->   recommender
+        // 这个程序会将 topic 为“log”的信息流获取来做处理，并以“recommender”为 新的 topic 转发出去
+
         builder.addSource("SOURCE", from) // 第二个参数是一个函数，这里写了一个lambda表达式
                 .addProcessor("PROCESSOR", ()->new LogProcessor(), "SOURCE")
                 .addSink("SINK", to, "PROCESSOR");

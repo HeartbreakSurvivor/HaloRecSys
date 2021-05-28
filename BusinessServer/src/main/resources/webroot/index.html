@@ -147,6 +147,12 @@ addGenreRow('#recPage', 'Genres TopN', 'Genres-TopN-collection', 16, baseUrl, 1)
 addGenreRow('#recPage', 'Comments Recently', 'Comments-recently-collection', 8, baseUrl, 1);
 addRowSplit('#recPage', '离线统计推荐');
 
+<!--只有用户登录了才显示这个界面-->
+var userName = localStorage.getItem("userName");
+if (null != userName) {
+    addStreamingRecRow('#recPage', 'Real-Time', 'Real-Time-collection', userName, 8, baseUrl);
+    addRowSplit('#recPage', '实时推荐');
+}
 
 </script>
 </html>

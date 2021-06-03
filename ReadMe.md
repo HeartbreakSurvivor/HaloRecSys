@@ -53,9 +53,51 @@ kafka-console-consumer --bootstrap-server localhost:9092 --topic log
 
 - flume
 
-启动指令:
-
+配置文件(不要把注释写在一行最后，调了我一天的时间)
 ```shell script
-flume-ng agent -c /usr/local/Cellar/flume/1.9.0_1/conf/ -f /usr/local/Cellar/flume/1.9.0_1/conf/log-kafka.properties -n agent -Dflume.root.logger=INFO,console
+agent.sources = exectail
+agent.channels = memoryChannel
+agent.sinks = kafkasink
 
+# For each one of the sources, the type is defined
+agent.sources.exectail.type = exec
+agent.sources.exectail.command = tail -f /Volumes/Study/RS/Projects/HaloRecSys/BusinessServer/src/main/log/agent.log
+agent.sources.exectail.interceptors = i1
+agent.sources.exectail.interceptors.i1.type = regex_filter
+agent.sources.exectail.interceptors.i1.regex = .+MOVIE_RATING_PREFIX.+
+
+# The channel can be defined as follows.
+agent.sources.exectail.channels = memoryChannel
+
+# Each sink's type must be defined
+agent.sinks.kafkasink.type = org.apache.flume.sink.kafka.KafkaSink
+#kafka topic name
+agent.sinks.kafkasink.kafka.topic = log
+agent.sinks.kafkasink.kafka.bootstrap.servers = localhost:9092
+agent.sinks.kafkasink.kafka.producer.acks = 1
+agent.sinks.kafkasink.kafka.flumeBatchSize = 10
+
+#Specify the channel the sink should use
+agent.sinks.kafkasink.channel = memoryChannel
+
+# Each channel's type is defined.
+agent.channels.memoryChannel.type = memory
+
+# Other config values specific to each type of channel(sink or source)
+# can be defined as well
+# In this case, it specifies the capacity of the memory channel
+agent.channels.memoryChannel.capacity = 1000
 ```
+
+启动指令:
+```shell script
+sudo flume-ng agent -c /usr/local/Cellar/flume/1.9.0_1/conf/ -f /usr/local/Cellar/flume/1.9.0_1/conf/log-kafka.properties -n agent -Dflume.root.logger=INFO,console
+```
+
+
+# Torch server
+## 启动指令
+torchserve --stop
+torch-model-archiver --model-name ncf --version 1.0 --model-file NeuralCF.py --serialized-file TrainedModels/NCF.pth --handler handler.py
+mv ncf.mar model_store/
+torchserve --start --model-store model_store --models ncf=ncf.mar

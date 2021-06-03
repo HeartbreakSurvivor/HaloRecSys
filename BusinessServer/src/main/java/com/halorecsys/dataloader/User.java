@@ -33,7 +33,7 @@ public class User {
     @JsonIgnore
     Embedding emb;
 
-    public User(){
+    public User() {
         this.ratings = new ArrayList<>();
         this.prefGenres = new ArrayList<>();
         this.emb = null;

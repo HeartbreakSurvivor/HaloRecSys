@@ -102,8 +102,16 @@ function addRowFrameWithoutLink(pageId, rowName, rowId, baseUrl) {
 };
 
 function addStreamingRecRow(pageId, rowName, rowId, username, size, baseUrl) {
-    addRowFrame(pageId, rowName, rowId, baseUrl);
+    addRowFrameWithoutLink(pageId, rowName, rowId, baseUrl);
     $.getJSON(baseUrl + "getstreamingrec?username="+username+"&size="+size+"&sortby=rating", function(result) {
+        $.each(result, function(i, movie){
+          appendMovie2Row(rowId, movie.title, movie.movieId, movie.releaseYear, movie.averageRating.toPrecision(2), movie.ratingNumber, movie.genres,baseUrl);
+        });
+    });
+};
+function addModelRecRow(pageId, rowName, rowId, username, size, baseUrl) {
+    addRowFrameWithoutLink(pageId, rowName, rowId, baseUrl);
+    $.getJSON(baseUrl + "getmodelrec?username="+username+"&size="+size+"&model=ncf", function(result) {
         $.each(result, function(i, movie){
           appendMovie2Row(rowId, movie.title, movie.movieId, movie.releaseYear, movie.averageRating.toPrecision(2), movie.ratingNumber, movie.genres,baseUrl);
         });
@@ -360,7 +368,7 @@ function addUserDetails(containerId, userId, baseUrl) {
                                <div class="row movie-highlights">\
                                    <div class="col-md-2">\
                                        <div class="heading-and-data">\
-                                           <div class="movie-details-heading">#Watched Movies</div>\
+                                           <div class="movie-details-heading">Watched Movies</div>\
                                            <div> '+userObject.ratingCount+' </div>\
                                        </div>\
                                        <div class="heading-and-data">\

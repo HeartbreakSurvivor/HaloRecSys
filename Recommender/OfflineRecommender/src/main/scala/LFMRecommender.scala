@@ -13,9 +13,9 @@ case class MovieRating(uid:String, mid:Int, score:Double, timestamp:Int)
 
 /*
 * 用户数据样例类
-* 	userId,password,id
+* 	userId,password,userIdx
 * */
-case class User(username:String, password:String, id:Int)
+case class User(username:String, password:String, userIdx:Int)
 
 /*
 * 定义MongoDB数据库相关配置信息样例类
@@ -90,7 +90,7 @@ object LFMRecommender {
 		  .load()
 		  .as[User] //转换成User格式
 		  .rdd
-		  .map( x => (x.username, x.id)) //去掉时间戳，转换成指定的格式
+		  .map( x => (x.username, x.userIdx)) //去掉时间戳，转换成指定的格式
 		  .cache()
 
 		// 从rating数据中=筛选出所有评过分的用户以及所有被评过分的电影，均需要去重,
@@ -123,7 +123,7 @@ object LFMRecommender {
 		val (rank, iter, lambda) = (200, 5, 0.1) //定义ALS模型训练的参数
 		val lfm = ALS.train(trainData, rank, iter, lambda)
 
-		val userRDD1 = userRDD.map( x => x._2.toInt)
+		val userRDD1 = userRDD.map( x => x._2)
 		//形成user-item的矩阵M，矩阵元素M[i][j]代表的含义是Useri 对 Moviej的评分
 		val userMovies = userRDD1.cartesian(movieRDD) // 笛卡尔积，形成U x M 大小的矩阵，
 		//基于LFM模型，计算user对movie的评分

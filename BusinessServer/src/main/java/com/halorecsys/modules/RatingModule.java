@@ -56,8 +56,8 @@ public class RatingModule {
         query.append("uid", rating.getUserName());
         query.append("mid", rating.getMovieId());
 
-//        ratingCollection.updateOne(query,
-//                new Document().append("$set", new Document("score", rating.getScore()).append("timestamp", rating.getTimestamp())));
+        ratingCollection.updateOne(query,
+                new Document().append("$set", new Document("score", rating.getScore()).append("timestamp", rating.getTimestamp())));
 
         BasicDBObject newDocument = new BasicDBObject();
         newDocument.put("score", rating.getScore());

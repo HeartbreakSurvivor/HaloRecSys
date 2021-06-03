@@ -152,6 +152,9 @@ var userName = localStorage.getItem("userName");
 if (null != userName) {
     addStreamingRecRow('#recPage', 'Real-Time', 'Real-Time-collection', userName, 8, baseUrl);
     addRowSplit('#recPage', '实时推荐');
+
+    addModelRecRow('#recPage', 'Guess what you like', 'Guess-you-like-collection', userName, 8, baseUrl);
+    addRowSplit('#recPage', '猜你喜欢');
 }
 
 </script>

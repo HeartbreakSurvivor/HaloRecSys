@@ -1,5 +1,6 @@
 package com.halorecsys.dataloader;
 
+import com.google.common.collect.HashBiMap;
 import com.halorecsys.utils.Config;
 import com.halorecsys.utils.MongoDBClient;
 import com.mongodb.BasicDBList;
@@ -16,6 +17,9 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.eq;
 
+import com.google.common.collect.BiMap;
+
+
 /**
  * @program: HaloRecSys
  * @description: Load all kinds of data from MongoDB to Memory
@@ -28,8 +32,12 @@ public class DataLoader {
 
     // map Movies and users info to corresponding Id
     HashMap<Integer, Movie> movieMap;
-    HashMap<String, User> userMap;
+    HashMap<String, User> userMap; // username和User之间的映射关系
+
+    // userIdx和username之间的映射关系
     HashMap<Integer, String> userId2Name;
+    // movieIx和movieIdx之间的映射关系,方便双向查找
+    BiMap<Integer, Integer> movieEmbBiMap;
 
     // map all movies to specific categories
     HashMap<String, List<Integer>> genresMap;
@@ -56,6 +64,7 @@ public class DataLoader {
         this.movieMap = new HashMap<>();
         this.userMap = new HashMap<>();
         this.userId2Name = new HashMap<>();
+        this.movieEmbBiMap = HashBiMap.create();
         this.genresMap = new HashMap<>();
 
         this.rateMostMovies = new ArrayList<>();
@@ -94,7 +103,7 @@ public class DataLoader {
         }
     }
 
-    public void LoadMovieData(String dbName, String movieTable, String ratingTable, String linkTable, String userTable) {
+    public void LoadMovieData(String dbName, String movieTable, String ratingTable, String linkTable, String userTable, String newRatingTable) {
         MongoDatabase db = MongoDBClient.getInstance().getDatabase(dbName);
 
         int count = 0;
@@ -105,11 +114,14 @@ public class DataLoader {
             int mid = doc.getInteger("mid");
             String name = doc.getString("name");
             String genres = doc.getString("genres");
+            int midx = doc.getInteger("movieIdx");
 
             int releaseYear = parseReleaseYear(name);
 
             Movie m = new Movie();
             m.setMovieId(mid);
+            m.setMovieIdx(midx);
+            this.movieEmbBiMap.put(mid, midx);
             if (releaseYear == -1){
                 m.setTitle(name.trim());
             } else {
@@ -141,7 +153,7 @@ public class DataLoader {
         for (Document doc : users.find()) {
             // parse each ratings data
             String username = doc.getString("username");
-            int userId = doc.getInteger("id");
+            int userId = doc.getInteger("userIdx");
 
             if (null != username && !this.userId2Name.containsKey(userId)) {
                 this.userId2Name.put(userId, username);
@@ -178,11 +190,6 @@ public class DataLoader {
             if (movie != null) {
                 movie.addRating(rating);
             }
-//            if (!this.userMap.containsKey(username)) {
-//                User user = new User();
-//                user.setUserName(username);
-//                this.userMap.put(username, user);
-//            }
             this.userMap.get(username).addRating(rating);
             if (score > 3.0) { //将评分大于3分的电影的类别设置为用户的喜爱类别
                 List<String> genres = movie.getGenres();
@@ -192,6 +199,42 @@ public class DataLoader {
         }
         System.out.println("Loading " + count + " ratings data completed. ");
         count = 0;
+
+        // load new ratings data
+        // actually if we use new ratings table, the rating table is unnecessary
+//        MongoCollection<Document> newRatings = db.getCollection(newRatingTable);
+//        for (Document doc : newRatings.find()) {
+//            // parse each ratings data
+//            int mid = doc.getInteger("mid"); // movie id
+//            int midx = doc.getInteger("movieIdx"); // movie index
+//
+//            String username = doc.getString("uid"); // user id
+//            long userIdx = doc.getInteger("userIdx"); // user index
+//
+//            Double score = doc.getDouble("score");
+//            int timestamp = doc.getInteger("timestamp");
+//
+//            Rating rating = new Rating(username, mid, score, timestamp);
+//            // update current movie's rating list
+//            Movie movie = this.movieMap.get(mid);
+//            if (movie != null) {
+//                movie.addRating(rating);
+//            }
+//
+////            if (!this.userMap.containsKey(username)) {
+////                User user = new User();
+////                user.setUserName(username);
+////                this.userMap.put(username, user);
+////            }
+//            this.userMap.get(username).addRating(rating);
+//            if (score > 3.0) { //将评分大于3分的电影的类别设置为用户的喜爱类别
+//                List<String> genres = movie.getGenres();
+//                this.userMap.get(username).setPrefGenres(genres);
+//            }
+//            count++;
+//        }
+//        System.out.println("Loading " + count + " new ratings data completed. ");
+//        count = 0;
 
         // load link data
         MongoCollection<Document> links = db.getCollection(linkTable);
@@ -256,7 +299,7 @@ public class DataLoader {
     public List<Movie> getMoviesByType(int type, String genre, int size, String sortBy) {
         List<Movie> movies = new ArrayList<>();
         switch (type) {
-            case 0:
+            case 0: //根据类别推荐
                 if (null != genre) {
                     for (int mid : this.genresMap.get(genre)) {
                         movies.add(this.movieMap.get(mid));
@@ -268,7 +311,7 @@ public class DataLoader {
                     }
                 }
                 break;
-            case 1:
+            case 1: //离线统计推荐
                 switch (genre) {
                     case "Most Comments": // 最多评分电影
                         for (int mid : this.rateMostMovies)
@@ -473,6 +516,15 @@ public class DataLoader {
     //get movie object by movie id
     public Movie getMovieById(int movieId){
         return this.movieMap.get(movieId);
+    }
+
+    public Set<Integer> getTotalMovieIds() { return this.movieMap.keySet(); }
+
+    public Integer getMovieIdOrMovieIdx(int key, boolean inverse) {
+        if (inverse) {
+            return this.movieEmbBiMap.inverse().get(key);
+        }
+        return this.movieEmbBiMap.get(key);
     }
 
     //get user object by user id

@@ -15,6 +15,7 @@ import java.util.List;
  **/
 public class Movie {
     int movieId;
+    int movieIdx; // for embedding
     int releaseYear;
     String title;
 
@@ -52,10 +53,10 @@ public class Movie {
     public int getMovieId() {
         return movieId;
     }
+    public void setMovieId(int movieId) { this.movieId = movieId; }
 
-    public void setMovieId(int movieId) {
-        this.movieId = movieId;
-    }
+    public int getMovieIdx() { return movieIdx; }
+    public void setMovieIdx(int movieIdx) { this.movieIdx = movieIdx; }
 
     public String getTitle() {
         return title;

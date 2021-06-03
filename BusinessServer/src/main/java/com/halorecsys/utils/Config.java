@@ -14,6 +14,7 @@ public class Config {
     public static final String DATABASE_NAME = "recommender";
     public static final String MONGODB_MOVIE_COLLECTION = "Movies";
     public static final String MONGODB_RATING_COLLECTION = "Ratings";
+    public static final String MONGODB_NEW_RATING_COLLECTION = "NewRatings";
     public static final String MONGODB_LINK_COLLECTION = "Links";
     public static final String MONGODB_TAG_COLLECTION = "Tags";
     public static final String MONGODB_USER_COLLECTION = "Users";
@@ -42,5 +43,8 @@ public class Config {
     public static String MOVIE_RATING_PREFIX = "MOVIE_RATING_PREFIX";
     public static int REDIS_MOVIE_RATING_QUEUE_SIZE = 40;
     public static final String MONGODB_STREAM_RECS_COLLECTION = "StreamingRecs";
+
+    /*********** 模型推荐相关 ************/
+    public static final String TORCH_SERVE_URL = "http://127.0.0.1:8080/predictions/";
 
 }

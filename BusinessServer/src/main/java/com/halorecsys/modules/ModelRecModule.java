@@ -70,7 +70,7 @@ public class ModelRecModule {
 
         // 3. construct http request json
         JSONArray instances = new JSONArray();
-        System.out.println("movieEmbIdx: " + movieEmbIdx);
+        //System.out.println("movieEmbIdx: " + movieEmbIdx);
 
         for (int mIdx : movieEmbIdx) {
             JSONObject tmp = new JSONObject();
@@ -80,7 +80,7 @@ public class ModelRecModule {
         }
         JSONObject testJson = new JSONObject();
         testJson.put("test", instances);
-        System.out.println(testJson.toString());
+        //System.out.println(testJson.toString());
 
         // 4. send the request and parse the response
         //need to confirm the torch serving end point
@@ -91,17 +91,11 @@ public class ModelRecModule {
         // construct a json format string
         String jsonStr = "{\"res\":" +  predictions + "}";
 
-        System.out.println("jsonStr: \n" +  jsonStr);
+        //System.out.println("jsonStr: \n" +  jsonStr);
 
         JSONObject predictionsObject = new JSONObject(jsonStr);
         HashMap<Integer, Double> candidateScoreMap = new HashMap<>();
 
-        try {
-
-        }
-        catch (Exception e) {
-
-        }
         JSONArray scores = predictionsObject.getJSONArray("res");
         for (int i = 0 ; i < candidates.size(); i++){
             candidateScoreMap.put(candidates.get(i), scores.getDouble(i));

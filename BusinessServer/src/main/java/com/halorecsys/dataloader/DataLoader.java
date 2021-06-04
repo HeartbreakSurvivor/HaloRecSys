@@ -518,7 +518,23 @@ public class DataLoader {
         return this.movieMap.get(movieId);
     }
 
-    public Set<Integer> getTotalMovieIds() { return this.movieMap.keySet(); }
+    public Set<Integer> getTotalMovieIds() {
+        // a weird Bug 2021.6.4
+        // any operation on the original keySet() will modify the movieMap
+        // so we need to return a copy of movieMap.keySet()
+
+        //return this.movieMap.keySet();
+
+        // this can fix the bug, but it's not efficient, cause we need to construct a
+        // same new Set every time.
+        Set<Integer> copy = new HashSet<>();
+        Iterator<Integer> it = this.movieMap.keySet().iterator();
+        while (it.hasNext()) {
+            Integer t = it.next();
+            copy.add(t);
+        }
+        return copy;
+    }
 
     public Integer getMovieIdOrMovieIdx(int key, boolean inverse) {
         if (inverse) {

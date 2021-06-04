@@ -115,10 +115,11 @@ public class ModelRecModule {
         // 7. convert movie embedding index to movieId
         List<Movie> res = new ArrayList<>();
         for (Map.Entry<Integer, Double> m : newList) {
-            int mIdx = m.getKey();
-            // get movieId by movie Index
-            int movieId = DataLoader.getInstance().getMovieIdOrMovieIdx(mIdx, true);
-            Movie movie = DataLoader.getInstance().getMovieById(movieId);
+//            int mIdx = m.getKey();
+//            // get movieId by movie Index
+//            int movieId = DataLoader.getInstance().getMovieIdOrMovieIdx(mIdx, true);
+
+            Movie movie = DataLoader.getInstance().getMovieById(m.getKey());
             res.add(movie);
         }
         return res;

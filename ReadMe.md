@@ -1,6 +1,6 @@
 # HaloRecSys 
 
-HaloRecSys is a simple movie recommendation web project. 
+HaloRecSys is a simple movie recommendation web project. including offline statistic recommendation, online realtime recommendation, user register and login, online model serving and 'guess what you like' and other functions.
 
 
 

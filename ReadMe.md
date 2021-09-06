@@ -111,3 +111,11 @@ torchserve --start --model-store model_store --models ncf=ncf.mar
 
 # 部分界面展示
 - 主界面
+  ![主界面](https://github.com/HeartbreakSurvivor/HaloRecSys/blob/main/pics/mainpage.jpg)
+- 电影信息界面
+  ![电影信息界面](https://github.com/HeartbreakSurvivor/HaloRecSys/blob/main/pics/movie_info.jpg)
+- 用户信息界面
+  ![用户信息界面](https://github.com/HeartbreakSurvivor/HaloRecSys/blob/main/pics/user_info.jpg)
+- 登录和冷启动
+  ![登录界面](https://github.com/HeartbreakSurvivor/HaloRecSys/blob/main/pics/login.jpg)
+  ![冷启动](https://github.com/HeartbreakSurvivor/HaloRecSys/blob/main/pics/cold_start.png)

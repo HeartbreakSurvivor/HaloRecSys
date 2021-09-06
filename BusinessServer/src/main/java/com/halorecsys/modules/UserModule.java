@@ -60,10 +60,10 @@ public class UserModule {
         //TODO
         // 先获取当前用户的最大编号，然后加一，再写入
         // 根据 {id} 来进行降序排列，然后取出对应的id，再加一
-        Document docs = userCollection.find().sort(Sorts.descending("id")).first();
-        int userId = docs.getInteger("id") + 1;
+        Document docs = userCollection.find().sort(Sorts.descending("userIdx")).first();
+        int userId = docs.getInteger("userIdx") + 1;
         // write to mongoDB
-        userCollection.insertOne(new Document("username", username).append("password", password).append("id", userId));
+        userCollection.insertOne(new Document("username", username).append("password", password).append("userIdx", userId));
         // write to memory
         DataLoader.getInstance().setUser(username, userId);
         return true;

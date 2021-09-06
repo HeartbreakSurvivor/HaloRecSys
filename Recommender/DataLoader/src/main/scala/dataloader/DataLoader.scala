@@ -180,6 +180,7 @@ object DataLoader {
 		// 构造用户数据表，去重然后转换User样例类格式
 		val userDF = ratingUIdxMIdxDF.dropDuplicates("uid", "userIdx").select("uid", "userIdx").rdd.map(
 			item => {
+				// 初始密码都设置成123456
 				User(item.getAs[String]("uid"), "123456", item.getAs[Int]("userIdx"))
 			}
 		).toDF()

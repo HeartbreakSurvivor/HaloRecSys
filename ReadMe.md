@@ -95,9 +95,16 @@ sudo flume-ng agent -c /usr/local/Cellar/flume/1.9.0_1/conf/ -f /usr/local/Cella
 ```
 
 
-# Torch server
-## 启动指令
+# Torch server 深度学习模型服务启动
 torchserve --stop
+
 torch-model-archiver --model-name ncf --version 1.0 --model-file NeuralCF.py --serialized-file TrainedModels/NCF.pth --handler handler.py
+
 mv ncf.mar model_store/
+
 torchserve --start --model-store model_store --models ncf=ncf.mar
+
+# 在线实时推荐功能启动
+- run RecServer
+- run Kafka Application
+- run StreamingRecommender

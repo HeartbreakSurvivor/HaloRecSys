@@ -29,8 +29,8 @@ ncf_config = {
 
 class NCFHandler(object):
     """
-    NCFHandler handler class. This handler takes a user index and a item iindex
-    and returns wether the user like the movie
+    NCFHandler handler class. This handler takes a user index and a item index
+    and returns whether the user like the movie
     """
 
     def __init__(self):

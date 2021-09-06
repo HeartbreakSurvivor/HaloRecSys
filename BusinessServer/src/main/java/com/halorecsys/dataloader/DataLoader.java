@@ -92,7 +92,7 @@ public class DataLoader {
     private int parseReleaseYear(String rawTitle){
         if (null == rawTitle || rawTitle.trim().length() < 6){
             return -1;
-        }else{
+        } else {
             // 提取 () 内的发行年份
             String yearString = rawTitle.trim().substring(rawTitle.length()-5, rawTitle.length()-1);
             try{

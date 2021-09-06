@@ -35,6 +35,6 @@ Recommender/StatisticsRecommender/target/
 Recommender/ContentRecommender/target/
 Recommender/StreamingRecommender/target/
 Recommender/KafkaStream/target/
-
+BusinessServer/src/main/log/agent.log
 
 

@@ -1,6 +1,6 @@
 # HaloRecSys 
 
-HaloRecSys is a simple movie recommendation web project.
+HaloRecSys is a simple movie recommendation web project. 
 
 
 
@@ -108,3 +108,6 @@ torchserve --start --model-store model_store --models ncf=ncf.mar
 - run RecServer
 - run Kafka Application
 - run StreamingRecommender
+
+# 部分界面展示
+- 主界面

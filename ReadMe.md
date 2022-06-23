@@ -41,7 +41,7 @@ kafka-topics --list --zookeeper localhost:2181/kafka
 kafka-topics --create --zookeeper localhost:2181/kafka --replication-factor 1 --partitions 1 --topic recommender
 kafka-topics --create --zookeeper localhost:2181/kafka --replication-factor 1 --partitions 1 --topic log
 
-启动kafka (fuck，必须以管理员身份启动，一堆坑)
+启动kafka (，必须以管理员身份启动，一堆坑)
 sudo kafka-server-start -daemon /usr/local/etc/kafka/server.properties
 
 创建生产者topic
